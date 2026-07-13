@@ -95,11 +95,13 @@ function parseCode(raw) {
   const s = sanitizeCode(raw).trim()
   if (!s) return null
 
+  const clampPerf = (n) => (n === null || n === undefined ? n : Math.max(0, Math.min(2, Math.round(n))))
+
   // Séparateur explicite entre obtenue et perfectionnement
   const sep = s.match(/^([0-9]+(?:[.,][0-9]+)?)[\s:;']+([0-9]+(?:[.,][0-9]+)?)$/)
   if (sep) {
     const obtenue = toNum(sep[1])
-    const perfectionnement = toNum(sep[2])
+    const perfectionnement = clampPerf(toNum(sep[2]))
     return { obtenue, perfectionnement, incomplete: false }
   }
 
@@ -112,7 +114,7 @@ function parseCode(raw) {
     if (decPart.length >= 2) {
       const obtenueDec = decPart.slice(0, -1)
       const perf = decPart.slice(-1)
-      return { obtenue: toNum(`${intPart}.${obtenueDec}`), perfectionnement: toNum(perf), incomplete: false }
+      return { obtenue: toNum(`${intPart}.${obtenueDec}`), perfectionnement: clampPerf(toNum(perf)), incomplete: false }
     }
     return { obtenue: toNum(`${intPart}.${decPart || '0'}`), perfectionnement: null, incomplete: true }
   }
@@ -123,12 +125,12 @@ function parseCode(raw) {
       return { obtenue: parseInt(s, 10), perfectionnement: null, incomplete: true }
     }
     if (s.length === 3) {
-      return { obtenue: parseInt(s.slice(0, 2), 10), perfectionnement: parseInt(s.slice(2), 10), incomplete: false }
+      return { obtenue: parseInt(s.slice(0, 2), 10), perfectionnement: clampPerf(parseInt(s.slice(2), 10)), incomplete: false }
     }
     // 4 chiffres et plus : les 2 derniers sont le perfectionnement
     return {
       obtenue: parseInt(s.slice(0, s.length - 2), 10),
-      perfectionnement: parseInt(s.slice(-2), 10),
+      perfectionnement: clampPerf(parseInt(s.slice(-2), 10)),
       incomplete: false,
     }
   }
@@ -463,7 +465,7 @@ function buildExportWorkbook(klass) {
 
 function Screen({ children, className = '' }) {
   return (
-    <div className={`min-h-screen bg-[#F6F4EF] dark:bg-[#0B1729] text-[#14213D] dark:text-[#EDE6D6] transition-colors ${className}`}>
+    <div className={`min-h-screen bg-[#F3F4F6] dark:bg-[#0F172A] text-[#1E3A8A] dark:text-[#E2E8F0] transition-colors ${className}`}>
       {children}
     </div>
   )
@@ -471,7 +473,7 @@ function Screen({ children, className = '' }) {
 
 function TopBar({ title, subtitle, onBack, right }) {
   return (
-    <div className="sticky top-0 z-20 bg-[#14213D] dark:bg-[#0B1729] text-[#F6F4EF] px-4 pt-[calc(env(safe-area-inset-top)+0.9rem)] pb-3 flex items-center gap-3 border-b border-[#C9A227]/30 shadow-sm">
+    <div className="sticky top-0 z-20 bg-[#1E3A8A] dark:bg-[#0F172A] text-[#F3F4F6] px-4 pt-[calc(env(safe-area-inset-top)+0.9rem)] pb-3 flex items-center gap-3 border-b border-[#F59E0B]/30 shadow-sm">
       {onBack && (
         <button onClick={onBack} className="p-1.5 -ml-1.5 rounded-lg active:bg-white/10">
           <ChevronLeft size={22} />
@@ -479,7 +481,7 @@ function TopBar({ title, subtitle, onBack, right }) {
       )}
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-[1.05rem] truncate">{title}</div>
-        {subtitle && <div className="text-xs text-[#C9A227] truncate">{subtitle}</div>}
+        {subtitle && <div className="text-xs text-[#F59E0B] truncate">{subtitle}</div>}
       </div>
       {right}
     </div>
@@ -492,7 +494,7 @@ function PrimaryButton({ children, onClick, disabled, className = '', type = 'bu
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`w-full py-3.5 rounded-2xl bg-[#14213D] dark:bg-[#C9A227] text-white dark:text-[#0B1729] font-semibold text-[0.98rem] active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 shadow-sm ${className}`}
+      className={`w-full py-3.5 rounded-2xl bg-[#1E3A8A] dark:bg-[#F59E0B] text-white dark:text-[#0F172A] font-semibold text-[0.98rem] active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 shadow-sm ${className}`}
     >
       {children}
     </button>
@@ -503,7 +505,7 @@ function GhostButton({ children, onClick, className = '' }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full py-3 rounded-2xl border border-[#14213D]/20 dark:border-[#C9A227]/30 font-medium text-[0.95rem] active:bg-black/5 dark:active:bg-white/5 transition ${className}`}
+      className={`w-full py-3 rounded-2xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 font-medium text-[0.95rem] active:bg-black/5 dark:active:bg-white/5 transition ${className}`}
     >
       {children}
     </button>
@@ -512,7 +514,7 @@ function GhostButton({ children, onClick, className = '' }) {
 
 function EmptyState({ icon: Icon, title, hint }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-16 px-8 text-[#14213D]/50 dark:text-[#EDE6D6]/40">
+    <div className="flex flex-col items-center justify-center text-center py-16 px-8 text-[#1E3A8A]/50 dark:text-[#E2E8F0]/40">
       {Icon && <Icon size={36} className="mb-3 opacity-60" />}
       <div className="font-medium">{title}</div>
       {hint && <div className="text-sm mt-1">{hint}</div>}
@@ -587,7 +589,7 @@ function LicenseGate({ onActivated }) {
                 value={adminPass}
                 onChange={(e) => setAdminPass(e.target.value)}
                 placeholder="Code administrateur"
-                className="w-full px-4 py-3 rounded-xl border border-[#14213D]/20 dark:border-[#C9A227]/30 bg-white dark:bg-[#132238] outline-none focus:ring-2 focus:ring-[#C9A227]"
+                className="w-full px-4 py-3 rounded-xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-white dark:bg-[#1E293B] outline-none focus:ring-2 focus:ring-[#F59E0B]"
               />
               <PrimaryButton onClick={() => adminPass === ADMIN_PASSCODE ? setAdminUnlocked(true) : setError('Code administrateur incorrect')}>
                 Déverrouiller
@@ -596,7 +598,7 @@ function LicenseGate({ onActivated }) {
             </>
           ) : (
             <>
-              <div className="flex items-center gap-2 text-[#C9A227] mb-1">
+              <div className="flex items-center gap-2 text-[#F59E0B] mb-1">
                 <ShieldCheck size={18} />
                 <span className="font-medium text-sm">Générateur de licence</span>
               </div>
@@ -606,7 +608,7 @@ function LicenseGate({ onActivated }) {
                   value={school}
                   onChange={(e) => setSchool(e.target.value)}
                   placeholder="Ex : EPP Ganmi A"
-                  className="w-full px-4 py-3 rounded-xl border border-[#14213D]/20 dark:border-[#C9A227]/30 bg-white dark:bg-[#132238] outline-none focus:ring-2 focus:ring-[#C9A227]"
+                  className="w-full px-4 py-3 rounded-xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-white dark:bg-[#1E293B] outline-none focus:ring-2 focus:ring-[#F59E0B]"
                 />
               </div>
               <div>
@@ -616,7 +618,7 @@ function LicenseGate({ onActivated }) {
                     <button
                       key={d}
                       onClick={() => setDays(d)}
-                      className={`py-2 rounded-xl text-sm font-medium border ${days === d ? 'bg-[#14213D] dark:bg-[#C9A227] text-white dark:text-[#0B1729] border-transparent' : 'border-[#14213D]/20 dark:border-[#C9A227]/30'}`}
+                      className={`py-2 rounded-xl text-sm font-medium border ${days === d ? 'bg-[#1E3A8A] dark:bg-[#F59E0B] text-white dark:text-[#0F172A] border-transparent' : 'border-[#1E3A8A]/20 dark:border-[#F59E0B]/30'}`}
                     >
                       {d === 365 ? '1 an' : `${d} j`}
                     </button>
@@ -625,10 +627,10 @@ function LicenseGate({ onActivated }) {
               </div>
               <PrimaryButton onClick={handleGenerate} disabled={!school.trim()}>Générer le code</PrimaryButton>
               {generated && (
-                <div className="p-4 rounded-2xl bg-[#14213D]/5 dark:bg-white/5 space-y-2">
+                <div className="p-4 rounded-2xl bg-[#1E3A8A]/5 dark:bg-white/5 space-y-2">
                   <div className="text-xs opacity-60">Code à transmettre à l'école (WhatsApp, SMS...)</div>
                   <div className="font-mono text-sm break-all">{generated}</div>
-                  <button onClick={handleCopy} className="flex items-center gap-1.5 text-sm text-[#C9A227] font-medium">
+                  <button onClick={handleCopy} className="flex items-center gap-1.5 text-sm text-[#F59E0B] font-medium">
                     <Copy size={15} /> {copied ? 'Copié !' : 'Copier le code'}
                   </button>
                 </div>
@@ -644,16 +646,16 @@ function LicenseGate({ onActivated }) {
     <Screen>
       <div className="min-h-screen flex flex-col justify-center px-6 py-10 max-w-md mx-auto">
         <div className="flex flex-col items-center mb-8">
-          <button onClick={handleLogoTap} className="w-16 h-16 rounded-2xl bg-[#14213D] dark:bg-[#C9A227] flex items-center justify-center mb-4 active:scale-95 transition">
-            <span className="text-white dark:text-[#0B1729] font-bold text-xl">NE</span>
+          <button onClick={handleLogoTap} className="w-16 h-16 rounded-2xl bg-[#1E3A8A] dark:bg-[#F59E0B] flex items-center justify-center mb-4 active:scale-95 transition">
+            <span className="text-white dark:text-[#0F172A] font-bold text-xl">NE</span>
           </button>
           <h1 className="text-xl font-bold">{APP_NAME}</h1>
           <p className="text-sm opacity-60 mt-1 text-center">Saisie rapide des notes EducMaster</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#132238] shadow-sm space-y-4">
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#1E293B] shadow-sm space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium">
-            <KeyRound size={16} className="text-[#C9A227]" />
+            <KeyRound size={16} className="text-[#F59E0B]" />
             Activation requise
           </div>
           <p className="text-sm opacity-70">
@@ -663,7 +665,7 @@ function LicenseGate({ onActivated }) {
             value={code}
             onChange={(e) => { setCode(e.target.value); setError('') }}
             placeholder="NX-XXXXX-XXXXX-XXXXX"
-            className="w-full px-4 py-3 rounded-xl border border-[#14213D]/20 dark:border-[#C9A227]/30 bg-transparent outline-none focus:ring-2 focus:ring-[#C9A227] font-mono text-sm"
+            className="w-full px-4 py-3 rounded-xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-transparent outline-none focus:ring-2 focus:ring-[#F59E0B] font-mono text-sm"
           />
           {error && <p className="text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={15} />{error}</p>}
           <PrimaryButton onClick={handleActivate} disabled={!code.trim()}>Activer</PrimaryButton>
@@ -713,11 +715,11 @@ function PinLockScreen({ pin, onUnlock }) {
   return (
     <Screen>
       <div className="min-h-screen flex flex-col items-center justify-center px-6">
-        <Lock size={28} className="mb-4 text-[#C9A227]" />
+        <Lock size={28} className="mb-4 text-[#F59E0B]" />
         <p className="text-sm opacity-60 mb-6">Entrez le code PIN</p>
         <div className={`flex gap-3 mb-8 ${error ? 'animate-pulse' : ''}`}>
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className={`w-3.5 h-3.5 rounded-full ${i < entry.length ? (error ? 'bg-red-500' : 'bg-[#14213D] dark:bg-[#C9A227]') : 'bg-[#14213D]/15 dark:bg-white/15'}`} />
+            <div key={i} className={`w-3.5 h-3.5 rounded-full ${i < entry.length ? (error ? 'bg-red-500' : 'bg-[#1E3A8A] dark:bg-[#F59E0B]') : 'bg-[#1E3A8A]/15 dark:bg-white/15'}`} />
           ))}
         </div>
         <div className="grid grid-cols-3 gap-4 max-w-[280px]">
@@ -726,7 +728,7 @@ function PinLockScreen({ pin, onUnlock }) {
               <button
                 key={i}
                 onClick={() => (d === '⌫' ? setEntry(entry.slice(0, -1)) : press(d))}
-                className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-medium bg-white dark:bg-[#132238] active:bg-[#14213D]/10 dark:active:bg-white/10 shadow-sm"
+                className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-medium bg-white dark:bg-[#1E293B] active:bg-[#1E3A8A]/10 dark:active:bg-white/10 shadow-sm"
               >
                 {d}
               </button>
@@ -748,8 +750,8 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F6F4EF] dark:bg-[#0B1729] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#14213D]/10 dark:border-white/10">
+      <div className="w-full bg-[#F3F4F6] dark:bg-[#0F172A] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1E3A8A]/10 dark:border-white/10">
           <h2 className="font-semibold">Mes classes</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
@@ -758,7 +760,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
             <div
               key={c.id}
               onClick={() => onSelect(c.id)}
-              className={`p-4 rounded-2xl flex items-center justify-between cursor-pointer ${c.id === activeId ? 'bg-[#14213D] text-white dark:bg-[#C9A227] dark:text-[#0B1729]' : 'bg-white dark:bg-[#132238]'}`}
+              className={`p-4 rounded-2xl flex items-center justify-between cursor-pointer ${c.id === activeId ? 'bg-[#1E3A8A] text-white dark:bg-[#F59E0B] dark:text-[#0F172A]' : 'bg-white dark:bg-[#1E293B]'}`}
             >
               <div className="min-w-0">
                 <div className="font-medium truncate">{c.className}</div>
@@ -776,7 +778,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
           ))}
           {classes.length === 0 && <EmptyState icon={Layers} title="Aucune classe" hint="Créez votre première classe" />}
         </div>
-        <div className="p-4 border-t border-[#14213D]/10 dark:border-white/10">
+        <div className="p-4 border-t border-[#1E3A8A]/10 dark:border-white/10">
           {creating ? (
             <div className="space-y-2">
               <input
@@ -784,7 +786,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nom de la classe (ex : CM2 Ganmi A)"
-                className="w-full px-4 py-3 rounded-xl border border-[#14213D]/20 dark:border-[#C9A227]/30 bg-white dark:bg-[#132238] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-white dark:bg-[#1E293B] outline-none"
               />
               <div className="flex gap-2">
                 <GhostButton onClick={() => setCreating(false)}>Annuler</GhostButton>
@@ -819,14 +821,14 @@ function ReorderPanel({ subjects, onReorder, onClose }) {
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F6F4EF] dark:bg-[#0B1729] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#14213D]/10 dark:border-white/10">
+      <div className="w-full bg-[#F3F4F6] dark:bg-[#0F172A] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1E3A8A]/10 dark:border-white/10">
           <h2 className="font-semibold">Réorganiser les matières</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {list.map((s, idx) => (
-            <div key={s.key} className="p-3.5 rounded-xl bg-white dark:bg-[#132238] flex items-center justify-between">
+            <div key={s.key} className="p-3.5 rounded-xl bg-white dark:bg-[#1E293B] flex items-center justify-between">
               <span className="font-medium text-sm">{s.label}</span>
               <div className="flex gap-1">
                 <button onClick={() => move(idx, -1)} disabled={idx === 0} className="p-2 disabled:opacity-30"><ArrowUp size={16} /></button>
@@ -835,7 +837,7 @@ function ReorderPanel({ subjects, onReorder, onClose }) {
             </div>
           ))}
         </div>
-        <div className="p-4 border-t border-[#14213D]/10 dark:border-white/10">
+        <div className="p-4 border-t border-[#1E3A8A]/10 dark:border-white/10">
           <PrimaryButton onClick={() => { onReorder(list); onClose() }}>Enregistrer l'ordre</PrimaryButton>
         </div>
       </div>
@@ -857,7 +859,7 @@ const TABS = [
 
 function BottomNav({ active, onChange, onMore }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-[#132238] border-t border-[#14213D]/10 dark:border-white/10 pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-[#1E293B] border-t border-[#1E3A8A]/10 dark:border-white/10 pb-[env(safe-area-inset-bottom)]">
       <div className="flex">
         {TABS.map((t) => {
           const Icon = t.icon
@@ -868,8 +870,8 @@ function BottomNav({ active, onChange, onMore }) {
               onClick={() => (t.key === 'plus' ? onMore() : onChange(t.key))}
               className="flex-1 flex flex-col items-center gap-1 py-2.5"
             >
-              <Icon size={20} className={isActive ? 'text-[#C9A227]' : 'opacity-50'} />
-              <span className={`text-[0.68rem] ${isActive ? 'text-[#C9A227] font-medium' : 'opacity-50'}`}>{t.label}</span>
+              <Icon size={20} className={isActive ? 'text-[#F59E0B]' : 'opacity-50'} />
+              <span className={`text-[0.68rem] ${isActive ? 'text-[#F59E0B] font-medium' : 'opacity-50'}`}>{t.label}</span>
             </button>
           )
         })}
@@ -886,7 +888,7 @@ function MorePanel({
   const [newPin, setNewPin] = useState('')
 
   const Row = ({ icon: Icon, label, onClick, danger }) => (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#132238] ${danger ? 'text-red-500' : ''}`}>
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E293B] ${danger ? 'text-red-500' : ''}`}>
       <Icon size={18} />
       <span className="flex-1 text-left text-sm font-medium">{label}</span>
       <ChevronRight size={16} className="opacity-40" />
@@ -895,8 +897,8 @@ function MorePanel({
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F6F4EF] dark:bg-[#0B1729] rounded-t-3xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#14213D]/10 dark:border-white/10">
+      <div className="w-full bg-[#F3F4F6] dark:bg-[#0F172A] rounded-t-3xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1E3A8A]/10 dark:border-white/10">
           <h2 className="font-semibold">Plus</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
@@ -906,12 +908,12 @@ function MorePanel({
           <Row icon={ArrowUp} label="Réorganiser les matières" onClick={onReorder} />
           <Row icon={RotateCcw} label={canUndo ? 'Annuler la dernière saisie' : 'Rien à annuler'} onClick={canUndo ? onUndo : undefined} />
 
-          <button onClick={onToggleDark} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#132238]">
+          <button onClick={onToggleDark} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E293B]">
             {dark ? <Sun size={18} /> : <Moon size={18} />}
             <span className="flex-1 text-left text-sm font-medium">Mode {dark ? 'clair' : 'sombre'}</span>
           </button>
 
-          <button onClick={() => onSetDefaultMode(defaultMode === 'eleve' ? 'matiere' : 'eleve')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#132238]">
+          <button onClick={() => onSetDefaultMode(defaultMode === 'eleve' ? 'matiere' : 'eleve')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E293B]">
             <ClipboardList size={18} />
             <span className="flex-1 text-left text-sm font-medium">Mode de saisie par défaut : {defaultMode === 'eleve' ? 'par élève' : 'par matière'}</span>
           </button>
@@ -919,13 +921,13 @@ function MorePanel({
           {!pinSetup ? (
             <Row icon={Lock} label={pin ? 'Changer / retirer le PIN' : 'Verrouiller par code PIN'} onClick={() => setPinSetup(true)} />
           ) : (
-            <div className="p-4 rounded-xl bg-white dark:bg-[#132238] space-y-2">
+            <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B] space-y-2">
               <input
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                 placeholder="Nouveau code à 4 chiffres"
                 inputMode="numeric"
-                className="w-full px-3 py-2.5 rounded-lg border border-[#14213D]/20 dark:border-[#C9A227]/30 bg-transparent outline-none"
+                className="w-full px-3 py-2.5 rounded-lg border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-transparent outline-none"
               />
               <div className="flex gap-2">
                 {pin && <GhostButton onClick={() => { onRemovePin(); setPinSetup(false) }}>Retirer le PIN</GhostButton>}
@@ -949,24 +951,47 @@ function MorePanel({
    PARCOURS INITIAL D'UNE CLASSE NEUVE
    ========================================================================== */
 
-function WelcomeScreen({ onStart }) {
+function WelcomeScreen({ onStart, onReset }) {
   return (
     <Screen>
       <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <div className="w-20 h-20 rounded-3xl bg-[#14213D] dark:bg-[#C9A227] flex items-center justify-center mb-6">
-          <span className="text-white dark:text-[#0B1729] font-bold text-2xl">NE</span>
+        <div className="mb-2 px-3.5 py-1.5 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
+          <span className="text-[0.68rem] font-semibold tracking-wide text-[#F59E0B] uppercase">Saisie ultra-rapide</span>
         </div>
-        <h1 className="text-2xl font-bold mb-2">{APP_NAME}</h1>
-        <p className="opacity-60 mb-10 max-w-xs">Saisissez les notes de votre classe rapidement, calculez moyennes et rangs, exportez au format EducMaster.</p>
-        <div className="w-full max-w-xs">
-          <PrimaryButton onClick={onStart}>Commencer</PrimaryButton>
+
+        <h1 className="mt-4 mb-1 font-black tracking-tight leading-none text-[2.6rem] sm:text-5xl">
+          <span className="text-[#1E3A8A] dark:text-white">Note</span>
+          <span className="text-[#F59E0B]">Express</span>
+        </h1>
+        <div className="w-16 h-1 rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#F59E0B] mb-6" />
+
+        <p className="opacity-70 mb-6 max-w-xs text-[0.95rem] leading-relaxed">
+          La saisie intelligente qui facilite <span className="font-semibold">EducMaster</span>.
+        </p>
+
+        <div className="w-full max-w-xs p-4 rounded-2xl border border-[#1E3A8A]/15 dark:border-[#F59E0B]/20 bg-[#1E3A8A]/[0.03] dark:bg-white/5 mb-8">
+          <p className="text-sm leading-relaxed">
+            Une nouvelle façon de saisir les notes d'évaluation, sans le stress des cellules Excel.
+          </p>
+        </div>
+
+        <div className="w-full max-w-xs space-y-3">
+          <PrimaryButton onClick={onStart}>
+            <span className="flex items-center justify-center gap-2">Commencer <ChevronRight size={18} /></span>
+          </PrimaryButton>
+          {onReset && (
+            <button onClick={onReset} className="w-full py-2 text-xs font-medium text-red-500/80 flex items-center justify-center gap-1.5">
+              <Trash2 size={13} /> Réinitialiser l'application
+            </button>
+          )}
         </div>
       </div>
     </Screen>
   )
 }
 
-function ImportScreen({ onImported }) {
+function ImportScreen({ onImported, onBack, onReset }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const fileRef = useRef(null)
@@ -987,24 +1012,44 @@ function ImportScreen({ onImported }) {
 
   return (
     <Screen>
-      <TopBar title="Importer la classe" />
-      <div className="p-6 flex flex-col items-center text-center pt-14">
-        <Upload size={40} className="mb-4 text-[#C9A227]" />
-        <h2 className="font-semibold text-lg mb-2">Fichier Excel EducMaster</h2>
-        <p className="text-sm opacity-60 mb-8 max-w-xs">Déposez le fichier exporté depuis EducMaster (colonnes Matricule, Nom, Prénoms puis les matières).</p>
+      <TopBar title="Importation" onBack={onBack} />
+      <div className="p-6 flex flex-col items-center text-center pt-10">
+        <div className="w-16 h-16 rounded-2xl bg-[#F59E0B]/10 flex items-center justify-center mb-5">
+          <Upload size={28} className="text-[#F59E0B]" />
+        </div>
+        <h2 className="font-bold text-xl mb-3">Importation</h2>
+        <div className="w-full max-w-xs p-4 rounded-2xl bg-[#1E3A8A]/[0.04] dark:bg-white/5 mb-6">
+          <p className="text-sm leading-relaxed">
+            Importez le fichier Excel EducMaster de la liste de saisie des notes de votre classe.
+          </p>
+        </div>
 
         <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => e.target.files[0] && handleFile(e.target.files[0])} />
-        <div className="w-full max-w-xs space-y-3">
-          <PrimaryButton onClick={() => fileRef.current?.click()} disabled={loading}>
-            {loading ? 'Lecture en cours…' : 'Choisir un fichier'}
-          </PrimaryButton>
-        </div>
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={loading}
+          className="w-full max-w-xs p-8 rounded-3xl border-2 border-dashed border-[#1E3A8A]/25 dark:border-[#F59E0B]/25 flex flex-col items-center gap-3 active:scale-[0.99] transition disabled:opacity-50"
+        >
+          <Upload size={26} className="text-[#1E3A8A] dark:text-[#F59E0B]" />
+          <div className="font-semibold text-sm">{loading ? 'Lecture en cours…' : 'Fichier Excel'}</div>
+          <div className="text-xs opacity-50">Touchez pour importer</div>
+        </button>
+
         {error && (
           <div className="mt-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 text-sm flex items-start gap-2 max-w-xs text-left">
             <AlertCircle size={16} className="shrink-0 mt-0.5" />
             {error}
           </div>
         )}
+
+        <div className="mt-8 space-y-3 w-full max-w-xs">
+          {onBack && <button onClick={onBack} className="text-sm font-medium opacity-60">Retour à l'accueil</button>}
+          {onReset && (
+            <button onClick={onReset} className="w-full py-1 text-xs font-medium text-red-500/80 flex items-center justify-center gap-1.5">
+              <Trash2 size={13} /> Réinitialiser l'application
+            </button>
+          )}
+        </div>
       </div>
     </Screen>
   )
@@ -1019,7 +1064,7 @@ function EvaluationPicker({ onPick }) {
           <button
             key={ev}
             onClick={() => onPick(ev)}
-            className="w-full p-4 rounded-2xl bg-white dark:bg-[#132238] text-left flex items-center justify-between shadow-sm active:scale-[0.99] transition"
+            className="w-full p-4 rounded-2xl bg-white dark:bg-[#1E293B] text-left flex items-center justify-between shadow-sm active:scale-[0.99] transition"
           >
             <span className="font-medium text-sm">{ev}</span>
             <ChevronRight size={18} className="opacity-40" />
@@ -1036,15 +1081,15 @@ function EntryModePicker({ onPick }) {
       <TopBar title="Mode de saisie" />
       <div className="p-5 pt-8 space-y-3">
         <p className="text-sm opacity-60 px-1 mb-2">Comment souhaitez-vous saisir les notes ? Vous pourrez changer à tout moment.</p>
-        <button onClick={() => onPick('eleve')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#132238] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
-          <Users size={26} className="text-[#C9A227]" />
+        <button onClick={() => onPick('eleve')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#1E293B] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
+          <Users size={26} className="text-[#F59E0B]" />
           <div>
             <div className="font-semibold">Par élève</div>
             <div className="text-xs opacity-60">Un élève à la fois, toutes ses matières</div>
           </div>
         </button>
-        <button onClick={() => onPick('matiere')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#132238] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
-          <BookOpen size={26} className="text-[#C9A227]" />
+        <button onClick={() => onPick('matiere')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#1E293B] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
+          <BookOpen size={26} className="text-[#F59E0B]" />
           <div>
             <div className="font-semibold">Par matière</div>
             <div className="text-xs opacity-60">Une matière à la fois, tous les élèves</div>
@@ -1052,6 +1097,23 @@ function EntryModePicker({ onPick }) {
         </button>
       </div>
     </Screen>
+  )
+}
+
+function GradeBreakdown({ grade }) {
+  if (!grade || grade.obtenue === null || grade.obtenue === undefined) return null
+  const perf = grade.perfectionnement ?? 0
+  const total = toNum(grade.obtenue) + toNum(perf)
+  return (
+    <div className="mt-2 pt-2 border-t border-[#1E3A8A]/10 dark:border-[#F59E0B]/15 flex items-center justify-between">
+      <div className="text-xs opacity-60">
+        Note : <span className="font-semibold opacity-100">{formatNum(grade.obtenue)}</span>
+        {'  '}| Perf : <span className="font-semibold opacity-100">{formatNum(perf)}</span>
+      </div>
+      <div className="px-2.5 py-1 rounded-lg bg-[#1E3A8A] dark:bg-[#F59E0B] text-white dark:text-[#0F172A] text-xs font-bold">
+        {formatNum(total)}/20
+      </div>
+    </div>
   )
 }
 
@@ -1109,16 +1171,19 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
           {subjects.map((s) => {
             const g = grades?.[student.matricule]?.[s.key]
             return (
-              <div key={s.key} className="p-3.5 rounded-2xl bg-white dark:bg-[#132238] flex items-center justify-between gap-3">
-                <span className="text-sm font-medium flex-1 min-w-0 truncate">{s.label}</span>
-                <input
-                  ref={(el) => (inputRefs.current[s.key] = el)}
-                  value={g?.rawCode ?? ''}
-                  onChange={(e) => handleChange(s.key, e.target.value)}
-                  placeholder="12 2"
-                  inputMode="decimal"
-                  className="w-24 text-center px-2 py-2 rounded-lg border border-[#14213D]/15 dark:border-[#C9A227]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#C9A227] font-mono"
-                />
+              <div key={s.key} className="p-3.5 rounded-2xl bg-white dark:bg-[#1E293B]">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium flex-1 min-w-0 truncate">{s.label}</span>
+                  <input
+                    ref={(el) => (inputRefs.current[s.key] = el)}
+                    value={g?.rawCode ?? ''}
+                    onChange={(e) => handleChange(s.key, e.target.value)}
+                    placeholder="1402"
+                    inputMode="decimal"
+                    className="w-24 text-center px-2 py-2 rounded-lg border border-[#1E3A8A]/15 dark:border-[#F59E0B]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#F59E0B] font-mono"
+                  />
+                </div>
+                <GradeBreakdown grade={g} />
               </div>
             )
           })}
@@ -1145,7 +1210,7 @@ function ElevesTab({ klass, onToggleAttendance, onRemoveStudent }) {
         const r = byMatricule[student.matricule]
         const isAbsent = attendance?.[student.matricule] === false
         return (
-          <div key={student.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#132238] flex items-center gap-3">
+          <div key={student.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#1E293B] flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <div className="font-medium text-sm truncate">{student.nom} {student.prenoms}</div>
               <div className="text-xs opacity-50 truncate">Matricule {student.matricule}</div>
@@ -1207,17 +1272,20 @@ function SubjectTab({ klass, onSetGrade }) {
           const isAbsent = attendance?.[student.matricule] === false
           const g = grades?.[student.matricule]?.[subject.key]
           return (
-            <div key={student.matricule} className={`p-3.5 rounded-2xl bg-white dark:bg-[#132238] flex items-center justify-between gap-3 ${isAbsent ? 'opacity-40' : ''}`}>
-              <span className="text-sm font-medium flex-1 min-w-0 truncate">{student.nom} {student.prenoms}</span>
-              <input
-                ref={(el) => (inputRefs.current[student.matricule] = el)}
-                value={g?.rawCode ?? ''}
-                onChange={(e) => handleChange(student.matricule, e.target.value, idx)}
-                placeholder="12 2"
-                inputMode="decimal"
-                disabled={isAbsent}
-                className="w-24 text-center px-2 py-2 rounded-lg border border-[#14213D]/15 dark:border-[#C9A227]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#C9A227] font-mono disabled:bg-black/5"
-              />
+            <div key={student.matricule} className={`p-3.5 rounded-2xl bg-white dark:bg-[#1E293B] ${isAbsent ? 'opacity-40' : ''}`}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium flex-1 min-w-0 truncate">{student.nom} {student.prenoms}</span>
+                <input
+                  ref={(el) => (inputRefs.current[student.matricule] = el)}
+                  value={g?.rawCode ?? ''}
+                  onChange={(e) => handleChange(student.matricule, e.target.value, idx)}
+                  placeholder="1402"
+                  inputMode="decimal"
+                  disabled={isAbsent}
+                  className="w-24 text-center px-2 py-2 rounded-lg border border-[#1E3A8A]/15 dark:border-[#F59E0B]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#F59E0B] font-mono disabled:bg-black/5"
+                />
+              </div>
+              {!isAbsent && <GradeBreakdown grade={g} />}
             </div>
           )
         })}
@@ -1240,7 +1308,7 @@ function RecapTab({ klass, onExport }) {
 
   return (
     <div className="px-4 pt-4 pb-28 space-y-3">
-      <div className="p-4 rounded-2xl bg-[#14213D] dark:bg-[#C9A227] text-white dark:text-[#0B1729] flex items-center justify-between">
+      <div className="p-4 rounded-2xl bg-[#1E3A8A] dark:bg-[#F59E0B] text-white dark:text-[#0F172A] flex items-center justify-between">
         <div>
           <div className="text-xs opacity-80">Résumé de la classe</div>
           <div className="font-semibold">{admisCount} admis sur {notesCount}</div>
@@ -1251,8 +1319,8 @@ function RecapTab({ klass, onExport }) {
       </div>
 
       {ranking.map((r) => (
-        <div key={r.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#132238] flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#14213D]/5 dark:bg-white/5 flex items-center justify-center text-xs font-semibold shrink-0">
+        <div key={r.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#1E293B] flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#1E3A8A]/5 dark:bg-white/5 flex items-center justify-center text-xs font-semibold shrink-0">
             {r.isAbsent ? '—' : r.rank}
           </div>
           <div className="min-w-0 flex-1">
@@ -1287,18 +1355,18 @@ function StatsTab({ klass, onClose }) {
       <TopBar title="Statistiques par matière" onBack={onClose} />
       <div className="px-4 pt-4 pb-10 space-y-2.5">
         {stats.map((s) => (
-          <div key={s.key} className="p-4 rounded-2xl bg-white dark:bg-[#132238]">
+          <div key={s.key} className="p-4 rounded-2xl bg-white dark:bg-[#1E293B]">
             <div className="font-medium text-sm mb-2">{s.label}</div>
             <div className="flex items-center justify-between text-xs opacity-60 mb-1">
               <span>Moyenne classe</span>
-              <span className="font-semibold text-[#14213D] dark:text-[#C9A227] text-sm">{s.average !== null ? `${formatNum(s.average)}/20` : '—'}</span>
+              <span className="font-semibold text-[#1E3A8A] dark:text-[#F59E0B] text-sm">{s.average !== null ? `${formatNum(s.average)}/20` : '—'}</span>
             </div>
             <div className="flex items-center justify-between text-xs opacity-60">
               <span>Taux de réussite (≥ {SUBJECT_PASS}/20)</span>
               <span className="font-semibold text-sm">{s.successRate !== null ? `${Math.round(s.successRate)}%` : '—'}</span>
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
-              <div className="h-full bg-[#C9A227]" style={{ width: `${s.successRate ?? 0}%` }} />
+              <div className="h-full bg-[#F59E0B]" style={{ width: `${s.successRate ?? 0}%` }} />
             </div>
           </div>
         ))}
@@ -1476,6 +1544,20 @@ export default function App() {
     setMorePanelOpen(false)
   }
 
+  function handleResetApplication() {
+    if (!window.confirm('Réinitialiser NoteExpress ? Toutes les classes et notes enregistrées sur cet appareil seront définitivement supprimées.')) return
+    localStorage.removeItem(LS_CLASSES)
+    localStorage.removeItem(LS_ACTIVE)
+    localStorage.removeItem(LS_PIN)
+    localStorage.removeItem(LS_DARK)
+    localStorage.removeItem(LS_DEFAULT_MODE)
+    setClasses([])
+    setActiveId(null)
+    setPin(null)
+    setPinLocked(false)
+    setDark(false)
+  }
+
   /* ------------------------- Rendus conditionnels ------------------------- */
 
   if (licenseStatus === 'checking') return null
@@ -1499,7 +1581,7 @@ export default function App() {
   if (!activeClass) {
     return (
       <Screen>
-        <WelcomeScreen onStart={() => handleCreateClass('Ma classe')} />
+        <WelcomeScreen onStart={() => handleCreateClass('Ma classe')} onReset={classes.length ? handleResetApplication : undefined} />
       </Screen>
     )
   }
@@ -1509,6 +1591,8 @@ export default function App() {
     return (
       <ImportScreen
         onImported={({ roster, subjects }) => updateClass(activeClass.id, (c) => ({ ...c, roster, subjects }))}
+        onBack={classes.length > 1 ? () => handleDeleteClass(activeClass.id) : undefined}
+        onReset={handleResetApplication}
       />
     )
   }
@@ -1540,9 +1624,25 @@ export default function App() {
         title={activeClass.className}
         subtitle={activeClass.evaluationType}
         right={
-          <button onClick={() => setClassSwitcherOpen(true)} className="p-1.5 -mr-1.5 rounded-lg active:bg-white/10">
-            <Layers size={19} />
-          </button>
+          <div className="flex items-center gap-1 -mr-1.5">
+            <button
+              onClick={() => buildExportWorkbook(activeClass)}
+              title="Exporter"
+              className="p-2 rounded-lg active:bg-white/10"
+            >
+              <Download size={18} />
+            </button>
+            <button
+              onClick={() => (pin ? setPinLocked(true) : setMorePanelOpen(true))}
+              title="Verrouiller"
+              className="p-2 rounded-lg active:bg-white/10"
+            >
+              <Lock size={18} className={pin ? '' : 'opacity-40'} />
+            </button>
+            <button onClick={() => setClassSwitcherOpen(true)} title="Changer de classe" className="p-2 rounded-lg active:bg-white/10">
+              <Layers size={18} />
+            </button>
+          </div>
         }
       />
       <LicenseExpiryBanner license={license} onDismiss={() => setBannerDismissed(true)} />
