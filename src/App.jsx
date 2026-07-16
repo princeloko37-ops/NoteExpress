@@ -5,6 +5,7 @@ import {
   Trash2, ArrowUp, ArrowDown, Upload, Download, ChevronRight, X, Check,
   RotateCcw, Home, KeyRound, ShieldCheck, Copy, AlertCircle, BarChart3,
   LogOut, Pencil, ChevronLeft, CircleCheck, CircleX, Layers, ClipboardList,
+  HelpCircle, Sparkles,
 } from 'lucide-react'
 
 /* ============================================================================
@@ -38,7 +39,12 @@ const LS_LEGACY = 'carnet-notes:current' // migration depuis l'ancienne app
 const LS_PIN = 'noteexpress:pin'
 const LS_DARK = 'noteexpress:dark'
 const LS_LICENSE = 'noteexpress:license'
+const LS_TRIAL_USED = 'noteexpress:trialUsed'
+const TRIAL_DAYS = 14
+// ⚠️ À REMPLACER : numéro WhatsApp de Prince avec l'indicatif, sans + ni espace (ex: 22901xxxxxxxx)
+const OWNER_WHATSAPP_NUMBER = '2290145584447'
 const LS_DEFAULT_MODE = 'noteexpress:defaultEntryMode'
+const LS_TUTORIAL = 'noteexpress:tutorialSeen'
 
 /* ============================================================================
    HELPERS GÉNÉRAUX
@@ -303,17 +309,32 @@ function saveLicense(code) {
    PERSISTANCE DES CLASSES
    ========================================================================== */
 
+function migrateClass(c) {
+  if (c && !c.gradesByEval) {
+    const ev = c.evaluationType || EVALUATION_TYPES[0]
+    const migrated = {
+      ...c,
+      gradesByEval: { [ev]: c.grades || {} },
+      attendanceByEval: { [ev]: c.attendance || {} },
+    }
+    delete migrated.grades
+    delete migrated.attendance
+    return migrated
+  }
+  return c
+}
+
 function loadClasses() {
   try {
     const raw = localStorage.getItem(LS_CLASSES)
-    if (raw) return JSON.parse(raw)
+    if (raw) return JSON.parse(raw).map(migrateClass)
   } catch {}
   // Migration depuis l'ancien format mono-classe
   try {
     const legacy = localStorage.getItem(LS_LEGACY)
     if (legacy) {
       const old = JSON.parse(legacy)
-      const migrated = { ...old, id: old.id || uid('cls') }
+      const migrated = migrateClass({ ...old, id: old.id || uid('cls') })
       return [migrated]
     }
   } catch {}
@@ -465,7 +486,7 @@ function buildExportWorkbook(klass) {
 
 function Screen({ children, className = '' }) {
   return (
-    <div className={`min-h-screen bg-[#F3F4F6] dark:bg-[#0F172A] text-[#1E3A8A] dark:text-[#E2E8F0] transition-colors ${className}`}>
+    <div className={`min-h-screen bg-[#F7F5FB] dark:bg-[#140F26] text-[#4C1D95] dark:text-[#EDE9FE] transition-colors ${className}`}>
       {children}
     </div>
   )
@@ -473,7 +494,7 @@ function Screen({ children, className = '' }) {
 
 function TopBar({ title, subtitle, onBack, right }) {
   return (
-    <div className="sticky top-0 z-20 bg-[#1E3A8A] dark:bg-[#0F172A] text-[#F3F4F6] px-4 pt-[calc(env(safe-area-inset-top)+0.9rem)] pb-3 flex items-center gap-3 border-b border-[#F59E0B]/30 shadow-sm">
+    <div className="sticky top-0 z-20 bg-[#4C1D95] dark:bg-[#140F26] text-[#F7F5FB] px-4 pt-[calc(env(safe-area-inset-top)+0.9rem)] pb-3 flex items-center gap-3 border-b border-[#06B6D4]/30 shadow-sm">
       {onBack && (
         <button onClick={onBack} className="p-1.5 -ml-1.5 rounded-lg active:bg-white/10">
           <ChevronLeft size={22} />
@@ -481,7 +502,7 @@ function TopBar({ title, subtitle, onBack, right }) {
       )}
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-[1.05rem] truncate">{title}</div>
-        {subtitle && <div className="text-xs text-[#F59E0B] truncate">{subtitle}</div>}
+        {subtitle && <div className="text-xs text-[#06B6D4] truncate">{subtitle}</div>}
       </div>
       {right}
     </div>
@@ -494,7 +515,7 @@ function PrimaryButton({ children, onClick, disabled, className = '', type = 'bu
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`w-full py-3.5 rounded-2xl bg-[#1E3A8A] dark:bg-[#F59E0B] text-white dark:text-[#0F172A] font-semibold text-[0.98rem] active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 shadow-sm ${className}`}
+      className={`w-full py-3.5 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] font-semibold text-[0.98rem] active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 shadow-sm ${className}`}
     >
       {children}
     </button>
@@ -505,7 +526,7 @@ function GhostButton({ children, onClick, className = '' }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full py-3 rounded-2xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 font-medium text-[0.95rem] active:bg-black/5 dark:active:bg-white/5 transition ${className}`}
+      className={`w-full py-3 rounded-2xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 font-medium text-[0.95rem] active:bg-black/5 dark:active:bg-white/5 transition ${className}`}
     >
       {children}
     </button>
@@ -514,7 +535,7 @@ function GhostButton({ children, onClick, className = '' }) {
 
 function EmptyState({ icon: Icon, title, hint }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-16 px-8 text-[#1E3A8A]/50 dark:text-[#E2E8F0]/40">
+    <div className="flex flex-col items-center justify-center text-center py-16 px-8 text-[#4C1D95]/50 dark:text-[#EDE9FE]/40">
       {Icon && <Icon size={36} className="mb-3 opacity-60" />}
       <div className="font-medium">{title}</div>
       {hint && <div className="text-sm mt-1">{hint}</div>}
@@ -537,6 +558,10 @@ function LicenseGate({ onActivated }) {
   const [generated, setGenerated] = useState('')
   const [copied, setCopied] = useState(false)
   const [logoTaps, setLogoTaps] = useState(0)
+  const [trialOpen, setTrialOpen] = useState(false)
+  const [trialSchool, setTrialSchool] = useState('')
+  const [trialPhone, setTrialPhone] = useState('')
+  const trialAlreadyUsed = typeof window !== 'undefined' && localStorage.getItem(LS_TRIAL_USED) === '1'
 
   function handleActivate() {
     const result = verifyLicenseCode(code)
@@ -551,6 +576,21 @@ function LicenseGate({ onActivated }) {
     saveLicense(code)
     setError('')
     onActivated(result)
+  }
+
+  function handleConfirmTrial() {
+    if (!trialSchool.trim() || !trialPhone.trim()) return
+    const trialCode = generateLicenseCode({ school: trialSchool.trim(), days: TRIAL_DAYS })
+    saveLicense(trialCode)
+    localStorage.setItem(LS_TRIAL_USED, '1')
+
+    const message = `Nouvel essai NoteExpress démarré\nÉcole : ${trialSchool.trim()}\nContact : ${trialPhone.trim()}\nDurée : ${TRIAL_DAYS} jours`
+    const waUrl = `https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+    try {
+      window.open(waUrl, '_blank')
+    } catch {}
+
+    onActivated(verifyLicenseCode(trialCode))
   }
 
   function handleLogoTap() {
@@ -589,7 +629,7 @@ function LicenseGate({ onActivated }) {
                 value={adminPass}
                 onChange={(e) => setAdminPass(e.target.value)}
                 placeholder="Code administrateur"
-                className="w-full px-4 py-3 rounded-xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-white dark:bg-[#1E293B] outline-none focus:ring-2 focus:ring-[#F59E0B]"
+                className="w-full px-4 py-3 rounded-xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-white dark:bg-[#241B3F] outline-none focus:ring-2 focus:ring-[#06B6D4]"
               />
               <PrimaryButton onClick={() => adminPass === ADMIN_PASSCODE ? setAdminUnlocked(true) : setError('Code administrateur incorrect')}>
                 Déverrouiller
@@ -598,7 +638,7 @@ function LicenseGate({ onActivated }) {
             </>
           ) : (
             <>
-              <div className="flex items-center gap-2 text-[#F59E0B] mb-1">
+              <div className="flex items-center gap-2 text-[#06B6D4] mb-1">
                 <ShieldCheck size={18} />
                 <span className="font-medium text-sm">Générateur de licence</span>
               </div>
@@ -608,7 +648,7 @@ function LicenseGate({ onActivated }) {
                   value={school}
                   onChange={(e) => setSchool(e.target.value)}
                   placeholder="Ex : EPP Ganmi A"
-                  className="w-full px-4 py-3 rounded-xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-white dark:bg-[#1E293B] outline-none focus:ring-2 focus:ring-[#F59E0B]"
+                  className="w-full px-4 py-3 rounded-xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-white dark:bg-[#241B3F] outline-none focus:ring-2 focus:ring-[#06B6D4]"
                 />
               </div>
               <div>
@@ -618,7 +658,7 @@ function LicenseGate({ onActivated }) {
                     <button
                       key={d}
                       onClick={() => setDays(d)}
-                      className={`py-2 rounded-xl text-sm font-medium border ${days === d ? 'bg-[#1E3A8A] dark:bg-[#F59E0B] text-white dark:text-[#0F172A] border-transparent' : 'border-[#1E3A8A]/20 dark:border-[#F59E0B]/30'}`}
+                      className={`py-2 rounded-xl text-sm font-medium border ${days === d ? 'bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] border-transparent' : 'border-[#4C1D95]/20 dark:border-[#06B6D4]/30'}`}
                     >
                       {d === 365 ? '1 an' : `${d} j`}
                     </button>
@@ -627,10 +667,10 @@ function LicenseGate({ onActivated }) {
               </div>
               <PrimaryButton onClick={handleGenerate} disabled={!school.trim()}>Générer le code</PrimaryButton>
               {generated && (
-                <div className="p-4 rounded-2xl bg-[#1E3A8A]/5 dark:bg-white/5 space-y-2">
+                <div className="p-4 rounded-2xl bg-[#4C1D95]/5 dark:bg-white/5 space-y-2">
                   <div className="text-xs opacity-60">Code à transmettre à l'école (WhatsApp, SMS...)</div>
                   <div className="font-mono text-sm break-all">{generated}</div>
-                  <button onClick={handleCopy} className="flex items-center gap-1.5 text-sm text-[#F59E0B] font-medium">
+                  <button onClick={handleCopy} className="flex items-center gap-1.5 text-sm text-[#06B6D4] font-medium">
                     <Copy size={15} /> {copied ? 'Copié !' : 'Copier le code'}
                   </button>
                 </div>
@@ -646,32 +686,72 @@ function LicenseGate({ onActivated }) {
     <Screen>
       <div className="min-h-screen flex flex-col justify-center px-6 py-10 max-w-md mx-auto">
         <div className="flex flex-col items-center mb-8">
-          <button onClick={handleLogoTap} className="w-16 h-16 rounded-2xl bg-[#1E3A8A] dark:bg-[#F59E0B] flex items-center justify-center mb-4 active:scale-95 transition">
-            <span className="text-white dark:text-[#0F172A] font-bold text-xl">NE</span>
+          <button onClick={handleLogoTap} className="w-16 h-16 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] flex items-center justify-center mb-4 active:scale-95 transition">
+            <span className="text-white dark:text-[#140F26] font-bold text-xl">NE</span>
           </button>
           <h1 className="text-xl font-bold">{APP_NAME}</h1>
           <p className="text-sm opacity-60 mt-1 text-center">Saisie rapide des notes EducMaster</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#1E293B] shadow-sm space-y-4">
+        {!trialAlreadyUsed && (
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-[#4C1D95] to-[#06B6D4] text-white shadow-sm mb-4">
+            <div className="flex items-center gap-2 text-sm font-semibold mb-1.5">
+              <Sparkles size={16} /> Testez avant de vous engager
+            </div>
+            <p className="text-sm opacity-90 mb-4">
+              {TRIAL_DAYS} jours d'accès complet. Indiquez juste votre école et un contact WhatsApp pour démarrer.
+            </p>
+            {!trialOpen ? (
+              <button onClick={() => setTrialOpen(true)} className="w-full py-3 rounded-xl bg-white text-[#4C1D95] font-semibold text-sm active:scale-[0.98] transition">
+                Démarrer l'essai de {TRIAL_DAYS} jours
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  value={trialSchool}
+                  onChange={(e) => setTrialSchool(e.target.value)}
+                  placeholder="Nom de l'école"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-white/95 text-[#140F26] text-sm outline-none placeholder:text-[#140F26]/40"
+                />
+                <input
+                  value={trialPhone}
+                  onChange={(e) => setTrialPhone(e.target.value)}
+                  placeholder="Numéro WhatsApp"
+                  inputMode="tel"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-white/95 text-[#140F26] text-sm outline-none placeholder:text-[#140F26]/40"
+                />
+                <button
+                  onClick={handleConfirmTrial}
+                  disabled={!trialSchool.trim() || !trialPhone.trim()}
+                  className="w-full py-3 rounded-xl bg-white text-[#4C1D95] font-semibold text-sm active:scale-[0.98] transition disabled:opacity-50"
+                >
+                  Envoyer et démarrer l'essai
+                </button>
+                <p className="text-xs opacity-75 text-center">Un message WhatsApp s'ouvrira pour confirmer votre essai.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#241B3F] shadow-sm space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium">
-            <KeyRound size={16} className="text-[#F59E0B]" />
-            Activation requise
+            <KeyRound size={16} className="text-[#06B6D4]" />
+            {trialAlreadyUsed ? "Vous avez déjà un code ?" : 'Ou entrez un code déjà reçu'}
           </div>
           <p className="text-sm opacity-70">
-            Cette application nécessite un code de licence fourni par votre établissement ou le distributeur de {APP_NAME}.
+            Si votre école a déjà acheté {APP_NAME}, entrez le code fourni par votre établissement ou le distributeur.
           </p>
           <input
             value={code}
             onChange={(e) => { setCode(e.target.value); setError('') }}
             placeholder="NX-XXXXX-XXXXX-XXXXX"
-            className="w-full px-4 py-3 rounded-xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-transparent outline-none focus:ring-2 focus:ring-[#F59E0B] font-mono text-sm"
+            className="w-full px-4 py-3 rounded-xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-transparent outline-none focus:ring-2 focus:ring-[#06B6D4] font-mono text-sm"
           />
           {error && <p className="text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={15} />{error}</p>}
-          <PrimaryButton onClick={handleActivate} disabled={!code.trim()}>Activer</PrimaryButton>
+          <PrimaryButton onClick={handleActivate} disabled={!code.trim()}>Activer ce code</PrimaryButton>
         </div>
 
-        <p className="text-xs opacity-40 text-center mt-6">Pas de code ? Contactez la personne qui vous a fourni {APP_NAME}.</p>
+        <p className="text-xs opacity-40 text-center mt-6">Besoin d'aide ? Contactez la personne qui vous a fait découvrir {APP_NAME}.</p>
       </div>
     </Screen>
   )
@@ -715,11 +795,11 @@ function PinLockScreen({ pin, onUnlock }) {
   return (
     <Screen>
       <div className="min-h-screen flex flex-col items-center justify-center px-6">
-        <Lock size={28} className="mb-4 text-[#F59E0B]" />
+        <Lock size={28} className="mb-4 text-[#06B6D4]" />
         <p className="text-sm opacity-60 mb-6">Entrez le code PIN</p>
         <div className={`flex gap-3 mb-8 ${error ? 'animate-pulse' : ''}`}>
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className={`w-3.5 h-3.5 rounded-full ${i < entry.length ? (error ? 'bg-red-500' : 'bg-[#1E3A8A] dark:bg-[#F59E0B]') : 'bg-[#1E3A8A]/15 dark:bg-white/15'}`} />
+            <div key={i} className={`w-3.5 h-3.5 rounded-full ${i < entry.length ? (error ? 'bg-red-500' : 'bg-[#4C1D95] dark:bg-[#06B6D4]') : 'bg-[#4C1D95]/15 dark:bg-white/15'}`} />
           ))}
         </div>
         <div className="grid grid-cols-3 gap-4 max-w-[280px]">
@@ -728,7 +808,7 @@ function PinLockScreen({ pin, onUnlock }) {
               <button
                 key={i}
                 onClick={() => (d === '⌫' ? setEntry(entry.slice(0, -1)) : press(d))}
-                className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-medium bg-white dark:bg-[#1E293B] active:bg-[#1E3A8A]/10 dark:active:bg-white/10 shadow-sm"
+                className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-medium bg-white dark:bg-[#241B3F] active:bg-[#4C1D95]/10 dark:active:bg-white/10 shadow-sm"
               >
                 {d}
               </button>
@@ -750,8 +830,8 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F3F4F6] dark:bg-[#0F172A] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1E3A8A]/10 dark:border-white/10">
+      <div className="w-full bg-[#F7F5FB] dark:bg-[#140F26] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#4C1D95]/10 dark:border-white/10">
           <h2 className="font-semibold">Mes classes</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
@@ -760,7 +840,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
             <div
               key={c.id}
               onClick={() => onSelect(c.id)}
-              className={`p-4 rounded-2xl flex items-center justify-between cursor-pointer ${c.id === activeId ? 'bg-[#1E3A8A] text-white dark:bg-[#F59E0B] dark:text-[#0F172A]' : 'bg-white dark:bg-[#1E293B]'}`}
+              className={`p-4 rounded-2xl flex items-center justify-between cursor-pointer ${c.id === activeId ? 'bg-[#4C1D95] text-white dark:bg-[#06B6D4] dark:text-[#140F26]' : 'bg-white dark:bg-[#241B3F]'}`}
             >
               <div className="min-w-0">
                 <div className="font-medium truncate">{c.className}</div>
@@ -778,7 +858,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
           ))}
           {classes.length === 0 && <EmptyState icon={Layers} title="Aucune classe" hint="Créez votre première classe" />}
         </div>
-        <div className="p-4 border-t border-[#1E3A8A]/10 dark:border-white/10">
+        <div className="p-4 border-t border-[#4C1D95]/10 dark:border-white/10">
           {creating ? (
             <div className="space-y-2">
               <input
@@ -786,7 +866,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nom de la classe (ex : CM2 Ganmi A)"
-                className="w-full px-4 py-3 rounded-xl border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-white dark:bg-[#1E293B] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-white dark:bg-[#241B3F] outline-none"
               />
               <div className="flex gap-2">
                 <GhostButton onClick={() => setCreating(false)}>Annuler</GhostButton>
@@ -821,14 +901,14 @@ function ReorderPanel({ subjects, onReorder, onClose }) {
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F3F4F6] dark:bg-[#0F172A] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1E3A8A]/10 dark:border-white/10">
+      <div className="w-full bg-[#F7F5FB] dark:bg-[#140F26] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#4C1D95]/10 dark:border-white/10">
           <h2 className="font-semibold">Réorganiser les matières</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {list.map((s, idx) => (
-            <div key={s.key} className="p-3.5 rounded-xl bg-white dark:bg-[#1E293B] flex items-center justify-between">
+            <div key={s.key} className="p-3.5 rounded-xl bg-white dark:bg-[#241B3F] flex items-center justify-between">
               <span className="font-medium text-sm">{s.label}</span>
               <div className="flex gap-1">
                 <button onClick={() => move(idx, -1)} disabled={idx === 0} className="p-2 disabled:opacity-30"><ArrowUp size={16} /></button>
@@ -837,8 +917,49 @@ function ReorderPanel({ subjects, onReorder, onClose }) {
             </div>
           ))}
         </div>
-        <div className="p-4 border-t border-[#1E3A8A]/10 dark:border-white/10">
+        <div className="p-4 border-t border-[#4C1D95]/10 dark:border-white/10">
           <PrimaryButton onClick={() => { onReorder(list); onClose() }}>Enregistrer l'ordre</PrimaryButton>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================================
+   CHANGEMENT DE PÉRIODE D'ÉVALUATION (sans perdre les autres notes)
+   ========================================================================== */
+
+function EvaluationSwitcher({ klass, onPick, onClose }) {
+  return (
+    <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
+      <div className="w-full bg-[#F7F5FB] dark:bg-[#140F26] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#4C1D95]/10 dark:border-white/10">
+          <div>
+            <h2 className="font-semibold">Période d'évaluation</h2>
+            <p className="text-xs opacity-60 mt-0.5">Chaque période garde ses propres notes.</p>
+          </div>
+          <button onClick={onClose}><X size={20} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {EVALUATION_TYPES.map((ev) => {
+            const count = evalGradeCount(klass, ev)
+            const isActive = klass.evaluationType === ev
+            return (
+              <button
+                key={ev}
+                onClick={() => onPick(ev)}
+                className={`w-full p-4 rounded-2xl flex items-center justify-between text-left ${isActive ? 'bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26]' : 'bg-white dark:bg-[#241B3F]'}`}
+              >
+                <div>
+                  <div className="font-medium text-sm">{ev}</div>
+                  <div className={`text-xs mt-0.5 ${isActive ? 'opacity-80' : 'opacity-50'}`}>
+                    {count > 0 ? `${count} note${count > 1 ? 's' : ''} enregistrée${count > 1 ? 's' : ''}` : 'Aucune note pour l\'instant'}
+                  </div>
+                </div>
+                {isActive && <Check size={18} />}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -859,7 +980,7 @@ const TABS = [
 
 function BottomNav({ active, onChange, onMore }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-[#1E293B] border-t border-[#1E3A8A]/10 dark:border-white/10 pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-[#241B3F] border-t border-[#4C1D95]/10 dark:border-white/10 pb-[env(safe-area-inset-bottom)]">
       <div className="flex">
         {TABS.map((t) => {
           const Icon = t.icon
@@ -870,8 +991,8 @@ function BottomNav({ active, onChange, onMore }) {
               onClick={() => (t.key === 'plus' ? onMore() : onChange(t.key))}
               className="flex-1 flex flex-col items-center gap-1 py-2.5"
             >
-              <Icon size={20} className={isActive ? 'text-[#F59E0B]' : 'opacity-50'} />
-              <span className={`text-[0.68rem] ${isActive ? 'text-[#F59E0B] font-medium' : 'opacity-50'}`}>{t.label}</span>
+              <Icon size={20} className={isActive ? 'text-[#06B6D4]' : 'opacity-50'} />
+              <span className={`text-[0.68rem] ${isActive ? 'text-[#06B6D4] font-medium' : 'opacity-50'}`}>{t.label}</span>
             </button>
           )
         })}
@@ -882,13 +1003,13 @@ function BottomNav({ active, onChange, onMore }) {
 
 function MorePanel({
   onClose, onSwitchClass, onReorder, dark, onToggleDark, pin, onSetPin, onRemovePin,
-  onUndo, canUndo, onDeleteClass, defaultMode, onSetDefaultMode, onGoWelcome, onStats,
+  onUndo, canUndo, onDeleteClass, defaultMode, onSetDefaultMode, onGoWelcome, onStats, onSwitchEvaluation,
 }) {
   const [pinSetup, setPinSetup] = useState(false)
   const [newPin, setNewPin] = useState('')
 
   const Row = ({ icon: Icon, label, onClick, danger }) => (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E293B] ${danger ? 'text-red-500' : ''}`}>
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#241B3F] ${danger ? 'text-red-500' : ''}`}>
       <Icon size={18} />
       <span className="flex-1 text-left text-sm font-medium">{label}</span>
       <ChevronRight size={16} className="opacity-40" />
@@ -897,23 +1018,24 @@ function MorePanel({
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F3F4F6] dark:bg-[#0F172A] rounded-t-3xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1E3A8A]/10 dark:border-white/10">
+      <div className="w-full bg-[#F7F5FB] dark:bg-[#140F26] rounded-t-3xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#4C1D95]/10 dark:border-white/10">
           <h2 className="font-semibold">Plus</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <Row icon={ClipboardList} label="Changer de période d'évaluation" onClick={onSwitchEvaluation} />
           <Row icon={Layers} label="Changer de classe" onClick={onSwitchClass} />
           <Row icon={BarChart3} label="Statistiques par matière" onClick={onStats} />
           <Row icon={ArrowUp} label="Réorganiser les matières" onClick={onReorder} />
           <Row icon={RotateCcw} label={canUndo ? 'Annuler la dernière saisie' : 'Rien à annuler'} onClick={canUndo ? onUndo : undefined} />
 
-          <button onClick={onToggleDark} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E293B]">
+          <button onClick={onToggleDark} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#241B3F]">
             {dark ? <Sun size={18} /> : <Moon size={18} />}
             <span className="flex-1 text-left text-sm font-medium">Mode {dark ? 'clair' : 'sombre'}</span>
           </button>
 
-          <button onClick={() => onSetDefaultMode(defaultMode === 'eleve' ? 'matiere' : 'eleve')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E293B]">
+          <button onClick={() => onSetDefaultMode(defaultMode === 'eleve' ? 'matiere' : 'eleve')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#241B3F]">
             <ClipboardList size={18} />
             <span className="flex-1 text-left text-sm font-medium">Mode de saisie par défaut : {defaultMode === 'eleve' ? 'par élève' : 'par matière'}</span>
           </button>
@@ -921,13 +1043,13 @@ function MorePanel({
           {!pinSetup ? (
             <Row icon={Lock} label={pin ? 'Changer / retirer le PIN' : 'Verrouiller par code PIN'} onClick={() => setPinSetup(true)} />
           ) : (
-            <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B] space-y-2">
+            <div className="p-4 rounded-xl bg-white dark:bg-[#241B3F] space-y-2">
               <input
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                 placeholder="Nouveau code à 4 chiffres"
                 inputMode="numeric"
-                className="w-full px-3 py-2.5 rounded-lg border border-[#1E3A8A]/20 dark:border-[#F59E0B]/30 bg-transparent outline-none"
+                className="w-full px-3 py-2.5 rounded-lg border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-transparent outline-none"
               />
               <div className="flex gap-2">
                 {pin && <GhostButton onClick={() => { onRemovePin(); setPinSetup(false) }}>Retirer le PIN</GhostButton>}
@@ -951,38 +1073,35 @@ function MorePanel({
    PARCOURS INITIAL D'UNE CLASSE NEUVE
    ========================================================================== */
 
-function WelcomeScreen({ onStart, onReset }) {
+function WelcomeScreen({ onStart, onReset, onDemo }) {
   return (
     <Screen>
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <div className="mb-2 px-3.5 py-1.5 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
-          <span className="text-[0.68rem] font-semibold tracking-wide text-[#F59E0B] uppercase">Saisie ultra-rapide</span>
+      <div className="min-h-screen flex flex-col items-center justify-center px-7 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] flex items-center justify-center mb-5 rotate-3">
+          <span className="text-white dark:text-[#140F26] font-black text-lg -rotate-3">NE</span>
         </div>
 
-        <h1 className="mt-4 mb-1 font-black tracking-tight leading-none text-[2.6rem] sm:text-5xl">
-          <span className="text-[#1E3A8A] dark:text-white">Note</span>
-          <span className="text-[#F59E0B]">Express</span>
+        <h1 className="font-black tracking-tight leading-[1.05] text-4xl sm:text-5xl mb-3">
+          <span className="text-[#4C1D95] dark:text-[#EDE9FE]">Note</span>
+          <span className="text-[#06B6D4]">Express</span>
         </h1>
-        <div className="w-16 h-1 rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#F59E0B] mb-6" />
 
-        <p className="opacity-70 mb-6 max-w-xs text-[0.95rem] leading-relaxed">
-          La saisie intelligente qui facilite <span className="font-semibold">EducMaster</span>.
+        <p className="text-[0.95rem] leading-relaxed max-w-xs mb-8 opacity-75">
+          Corriger 40 copies, c'est déjà assez long. Reporter les notes sur EducMaster ne devrait pas l'être. NoteExpress s'en charge en quelques minutes, directement depuis votre téléphone.
         </p>
-
-        <div className="w-full max-w-xs p-4 rounded-2xl border border-[#1E3A8A]/15 dark:border-[#F59E0B]/20 bg-[#1E3A8A]/[0.03] dark:bg-white/5 mb-8">
-          <p className="text-sm leading-relaxed">
-            Une nouvelle façon de saisir les notes d'évaluation, sans le stress des cellules Excel.
-          </p>
-        </div>
 
         <div className="w-full max-w-xs space-y-3">
           <PrimaryButton onClick={onStart}>
-            <span className="flex items-center justify-center gap-2">Commencer <ChevronRight size={18} /></span>
+            <span className="flex items-center justify-center gap-2">Ouvrir ma classe <ChevronRight size={18} /></span>
           </PrimaryButton>
+          {onDemo && (
+            <GhostButton onClick={onDemo}>
+              <span className="flex items-center justify-center gap-2"><Sparkles size={16} /> Faire le tour sans mes données</span>
+            </GhostButton>
+          )}
           {onReset && (
             <button onClick={onReset} className="w-full py-2 text-xs font-medium text-red-500/80 flex items-center justify-center gap-1.5">
-              <Trash2 size={13} /> Réinitialiser l'application
+              <Trash2 size={13} /> Tout effacer et repartir de zéro
             </button>
           )}
         </div>
@@ -1012,27 +1131,25 @@ function ImportScreen({ onImported, onBack, onReset }) {
 
   return (
     <Screen>
-      <TopBar title="Importation" onBack={onBack} />
+      <TopBar title="Votre classe" onBack={onBack} />
       <div className="p-6 flex flex-col items-center text-center pt-10">
-        <div className="w-16 h-16 rounded-2xl bg-[#F59E0B]/10 flex items-center justify-center mb-5">
-          <Upload size={28} className="text-[#F59E0B]" />
+        <div className="w-16 h-16 rounded-2xl bg-[#06B6D4]/10 flex items-center justify-center mb-5 -rotate-2">
+          <Upload size={26} className="text-[#06B6D4] rotate-2" />
         </div>
-        <h2 className="font-bold text-xl mb-3">Importation</h2>
-        <div className="w-full max-w-xs p-4 rounded-2xl bg-[#1E3A8A]/[0.04] dark:bg-white/5 mb-6">
-          <p className="text-sm leading-relaxed">
-            Importez le fichier Excel EducMaster de la liste de saisie des notes de votre classe.
-          </p>
-        </div>
+        <h2 className="font-bold text-xl mb-2">On récupère votre liste</h2>
+        <p className="text-sm leading-relaxed opacity-70 max-w-xs mb-7">
+          Le fichier que vous avez déjà exporté depuis EducMaster pour cette classe suffit — NoteExpress reconnaît directement les colonnes et les matières.
+        </p>
 
         <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => e.target.files[0] && handleFile(e.target.files[0])} />
         <button
           onClick={() => fileRef.current?.click()}
           disabled={loading}
-          className="w-full max-w-xs p-8 rounded-3xl border-2 border-dashed border-[#1E3A8A]/25 dark:border-[#F59E0B]/25 flex flex-col items-center gap-3 active:scale-[0.99] transition disabled:opacity-50"
+          className="w-full max-w-xs p-8 rounded-3xl border-2 border-dashed border-[#4C1D95]/25 dark:border-[#06B6D4]/25 flex flex-col items-center gap-3 active:scale-[0.99] transition disabled:opacity-50"
         >
-          <Upload size={26} className="text-[#1E3A8A] dark:text-[#F59E0B]" />
-          <div className="font-semibold text-sm">{loading ? 'Lecture en cours…' : 'Fichier Excel'}</div>
-          <div className="text-xs opacity-50">Touchez pour importer</div>
+          <Upload size={26} className="text-[#4C1D95] dark:text-[#06B6D4]" />
+          <div className="font-semibold text-sm">{loading ? 'Lecture du fichier…' : 'Choisir le fichier .xlsx'}</div>
+          <div className="text-xs opacity-50">Un tap suffit</div>
         </button>
 
         {error && (
@@ -1043,10 +1160,10 @@ function ImportScreen({ onImported, onBack, onReset }) {
         )}
 
         <div className="mt-8 space-y-3 w-full max-w-xs">
-          {onBack && <button onClick={onBack} className="text-sm font-medium opacity-60">Retour à l'accueil</button>}
+          {onBack && <button onClick={onBack} className="text-sm font-medium opacity-60">‹ Une autre classe plutôt</button>}
           {onReset && (
             <button onClick={onReset} className="w-full py-1 text-xs font-medium text-red-500/80 flex items-center justify-center gap-1.5">
-              <Trash2 size={13} /> Réinitialiser l'application
+              <Trash2 size={13} /> Tout effacer et repartir de zéro
             </button>
           )}
         </div>
@@ -1064,7 +1181,7 @@ function EvaluationPicker({ onPick }) {
           <button
             key={ev}
             onClick={() => onPick(ev)}
-            className="w-full p-4 rounded-2xl bg-white dark:bg-[#1E293B] text-left flex items-center justify-between shadow-sm active:scale-[0.99] transition"
+            className="w-full p-4 rounded-2xl bg-white dark:bg-[#241B3F] text-left flex items-center justify-between shadow-sm active:scale-[0.99] transition"
           >
             <span className="font-medium text-sm">{ev}</span>
             <ChevronRight size={18} className="opacity-40" />
@@ -1081,15 +1198,15 @@ function EntryModePicker({ onPick }) {
       <TopBar title="Mode de saisie" />
       <div className="p-5 pt-8 space-y-3">
         <p className="text-sm opacity-60 px-1 mb-2">Comment souhaitez-vous saisir les notes ? Vous pourrez changer à tout moment.</p>
-        <button onClick={() => onPick('eleve')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#1E293B] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
-          <Users size={26} className="text-[#F59E0B]" />
+        <button onClick={() => onPick('eleve')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#241B3F] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
+          <Users size={26} className="text-[#06B6D4]" />
           <div>
             <div className="font-semibold">Par élève</div>
             <div className="text-xs opacity-60">Un élève à la fois, toutes ses matières</div>
           </div>
         </button>
-        <button onClick={() => onPick('matiere')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#1E293B] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
-          <BookOpen size={26} className="text-[#F59E0B]" />
+        <button onClick={() => onPick('matiere')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#241B3F] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
+          <BookOpen size={26} className="text-[#06B6D4]" />
           <div>
             <div className="font-semibold">Par matière</div>
             <div className="text-xs opacity-60">Une matière à la fois, tous les élèves</div>
@@ -1105,12 +1222,12 @@ function GradeBreakdown({ grade }) {
   const perf = grade.perfectionnement ?? 0
   const total = toNum(grade.obtenue) + toNum(perf)
   return (
-    <div className="mt-2 pt-2 border-t border-[#1E3A8A]/10 dark:border-[#F59E0B]/15 flex items-center justify-between">
+    <div className="mt-2 pt-2 border-t border-[#4C1D95]/10 dark:border-[#06B6D4]/15 flex items-center justify-between">
       <div className="text-xs opacity-60">
         Note : <span className="font-semibold opacity-100">{formatNum(grade.obtenue)}</span>
         {'  '}| Perf : <span className="font-semibold opacity-100">{formatNum(perf)}</span>
       </div>
-      <div className="px-2.5 py-1 rounded-lg bg-[#1E3A8A] dark:bg-[#F59E0B] text-white dark:text-[#0F172A] text-xs font-bold">
+      <div className="px-2.5 py-1 rounded-lg bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] text-xs font-bold">
         {formatNum(total)}/20
       </div>
     </div>
@@ -1171,7 +1288,7 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
           {subjects.map((s) => {
             const g = grades?.[student.matricule]?.[s.key]
             return (
-              <div key={s.key} className="p-3.5 rounded-2xl bg-white dark:bg-[#1E293B]">
+              <div key={s.key} className="p-3.5 rounded-2xl bg-white dark:bg-[#241B3F]">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-medium flex-1 min-w-0 truncate">{s.label}</span>
                   <input
@@ -1180,7 +1297,7 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
                     onChange={(e) => handleChange(s.key, e.target.value)}
                     placeholder="1402"
                     inputMode="decimal"
-                    className="w-24 text-center px-2 py-2 rounded-lg border border-[#1E3A8A]/15 dark:border-[#F59E0B]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#F59E0B] font-mono"
+                    className="w-24 text-center px-2 py-2 rounded-lg border border-[#4C1D95]/15 dark:border-[#06B6D4]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#06B6D4] font-mono"
                   />
                 </div>
                 <GradeBreakdown grade={g} />
@@ -1210,7 +1327,7 @@ function ElevesTab({ klass, onToggleAttendance, onRemoveStudent }) {
         const r = byMatricule[student.matricule]
         const isAbsent = attendance?.[student.matricule] === false
         return (
-          <div key={student.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#1E293B] flex items-center gap-3">
+          <div key={student.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#241B3F] flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <div className="font-medium text-sm truncate">{student.nom} {student.prenoms}</div>
               <div className="text-xs opacity-50 truncate">Matricule {student.matricule}</div>
@@ -1272,7 +1389,7 @@ function SubjectTab({ klass, onSetGrade }) {
           const isAbsent = attendance?.[student.matricule] === false
           const g = grades?.[student.matricule]?.[subject.key]
           return (
-            <div key={student.matricule} className={`p-3.5 rounded-2xl bg-white dark:bg-[#1E293B] ${isAbsent ? 'opacity-40' : ''}`}>
+            <div key={student.matricule} className={`p-3.5 rounded-2xl bg-white dark:bg-[#241B3F] ${isAbsent ? 'opacity-40' : ''}`}>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium flex-1 min-w-0 truncate">{student.nom} {student.prenoms}</span>
                 <input
@@ -1282,7 +1399,7 @@ function SubjectTab({ klass, onSetGrade }) {
                   placeholder="1402"
                   inputMode="decimal"
                   disabled={isAbsent}
-                  className="w-24 text-center px-2 py-2 rounded-lg border border-[#1E3A8A]/15 dark:border-[#F59E0B]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#F59E0B] font-mono disabled:bg-black/5"
+                  className="w-24 text-center px-2 py-2 rounded-lg border border-[#4C1D95]/15 dark:border-[#06B6D4]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#06B6D4] font-mono disabled:bg-black/5"
                 />
               </div>
               {!isAbsent && <GradeBreakdown grade={g} />}
@@ -1308,7 +1425,7 @@ function RecapTab({ klass, onExport }) {
 
   return (
     <div className="px-4 pt-4 pb-28 space-y-3">
-      <div className="p-4 rounded-2xl bg-[#1E3A8A] dark:bg-[#F59E0B] text-white dark:text-[#0F172A] flex items-center justify-between">
+      <div className="p-4 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] flex items-center justify-between">
         <div>
           <div className="text-xs opacity-80">Résumé de la classe</div>
           <div className="font-semibold">{admisCount} admis sur {notesCount}</div>
@@ -1319,8 +1436,8 @@ function RecapTab({ klass, onExport }) {
       </div>
 
       {ranking.map((r) => (
-        <div key={r.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#1E293B] flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#1E3A8A]/5 dark:bg-white/5 flex items-center justify-center text-xs font-semibold shrink-0">
+        <div key={r.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#241B3F] flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#4C1D95]/5 dark:bg-white/5 flex items-center justify-center text-xs font-semibold shrink-0">
             {r.isAbsent ? '—' : r.rank}
           </div>
           <div className="min-w-0 flex-1">
@@ -1355,18 +1472,18 @@ function StatsTab({ klass, onClose }) {
       <TopBar title="Statistiques par matière" onBack={onClose} />
       <div className="px-4 pt-4 pb-10 space-y-2.5">
         {stats.map((s) => (
-          <div key={s.key} className="p-4 rounded-2xl bg-white dark:bg-[#1E293B]">
+          <div key={s.key} className="p-4 rounded-2xl bg-white dark:bg-[#241B3F]">
             <div className="font-medium text-sm mb-2">{s.label}</div>
             <div className="flex items-center justify-between text-xs opacity-60 mb-1">
               <span>Moyenne classe</span>
-              <span className="font-semibold text-[#1E3A8A] dark:text-[#F59E0B] text-sm">{s.average !== null ? `${formatNum(s.average)}/20` : '—'}</span>
+              <span className="font-semibold text-[#4C1D95] dark:text-[#06B6D4] text-sm">{s.average !== null ? `${formatNum(s.average)}/20` : '—'}</span>
             </div>
             <div className="flex items-center justify-between text-xs opacity-60">
               <span>Taux de réussite (≥ {SUBJECT_PASS}/20)</span>
               <span className="font-semibold text-sm">{s.successRate !== null ? `${Math.round(s.successRate)}%` : '—'}</span>
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
-              <div className="h-full bg-[#F59E0B]" style={{ width: `${s.successRate ?? 0}%` }} />
+              <div className="h-full bg-[#06B6D4]" style={{ width: `${s.successRate ?? 0}%` }} />
             </div>
           </div>
         ))}
@@ -1377,10 +1494,168 @@ function StatsTab({ klass, onClose }) {
 }
 
 /* ============================================================================
+   FILET DE SÉCURITÉ — évite les pages blanches en cas d'erreur imprévue
+   ========================================================================== */
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(error, info) {
+    console.error('NoteExpress a rencontré une erreur :', error, info)
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-[#F7F5FB] dark:bg-[#140F26] text-[#241B3F] dark:text-[#EDE9FE]">
+          <AlertCircle size={36} className="mb-4 text-[#06B6D4]" />
+          <h2 className="font-bold text-lg mb-2">Un problème est survenu</h2>
+          <p className="text-sm opacity-70 mb-6 max-w-xs">
+            Vos données déjà saisies sont conservées sur l'appareil. Essayez de recharger l'application.
+          </p>
+          <button
+            onClick={() => { this.setState({ hasError: false }); window.location.reload() }}
+            className="px-6 py-3 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] font-semibold text-sm"
+          >
+            Recharger l'application
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+function generateDemoClass() {
+  const NOMS = ['ADJOVI', 'AGOSSOU', 'AHOUANSOU', 'AÏNA', 'ALLADATIN', 'AZONHOUME', 'BOKO', 'DOSSOU', 'HOUNKPATIN', 'SOSSOU']
+  const PRENOMS = ['Espoir', 'Grâce', 'Rodrigue', 'Bénédicte', 'Emmanuel', 'Rosine', 'Junior', 'Divine', 'Prince', 'Marlène']
+  const subjects = [
+    { key: 'dictee_0', label: 'Dictée' },
+    { key: 'math_1', label: 'Mathématiques' },
+    { key: 'lecture_2', label: 'Lecture' },
+    { key: 'sciences_3', label: 'Sciences' },
+  ]
+  const roster = NOMS.map((nom, i) => ({
+    matricule: `DEMO${String(i + 1).padStart(3, '0')}`,
+    rawMatricule: `DEMO${String(i + 1).padStart(3, '0')}`,
+    nom,
+    prenoms: PRENOMS[i],
+  }))
+  const grades = {}
+  roster.forEach((s) => {
+    grades[s.matricule] = {}
+    subjects.forEach((subj) => {
+      const obtenue = 8 + Math.floor(Math.random() * 10)
+      const perfectionnement = Math.floor(Math.random() * 3)
+      grades[s.matricule][subj.key] = { rawCode: `${obtenue}${String(perfectionnement).padStart(2, '0')}`, obtenue, perfectionnement }
+    })
+  })
+  return {
+    id: uid('cls'),
+    className: 'Classe démo — CM1',
+    evaluationType: EVALUATION_TYPES[0],
+    entryModeChosen: true,
+    roster,
+    subjects,
+    gradesByEval: { [EVALUATION_TYPES[0]]: grades },
+    attendanceByEval: { [EVALUATION_TYPES[0]]: {} },
+    isDemo: true,
+    updatedAt: Date.now(),
+  }
+}
+
+function getEvalGrades(klass) {
+  return klass?.gradesByEval?.[klass.evaluationType] || {}
+}
+function getEvalAttendance(klass) {
+  return klass?.attendanceByEval?.[klass.evaluationType] || {}
+}
+function evalGradeCount(klass, ev) {
+  const g = klass?.gradesByEval?.[ev] || {}
+  return Object.values(g).reduce((sum, subjMap) => sum + Object.values(subjMap || {}).filter((x) => x?.obtenue !== null && x?.obtenue !== undefined).length, 0)
+}
+
+/* ============================================================================
+   TUTORIEL D'ACCUEIL — apprend l'usage en quelques écrans
+   ========================================================================== */
+
+const TUTORIAL_STEPS = [
+  {
+    icon: Sparkles,
+    title: 'Bienvenue sur NoteExpress',
+    text: "Fini le stress des cellules Excel. Cette application vous fait gagner un temps précieux pour saisir les notes de votre classe.",
+  },
+  {
+    icon: Upload,
+    title: 'Importez votre fichier',
+    text: "Récupérez le fichier Excel exporté depuis EducMaster pour votre classe, puis importez-le en un seul geste.",
+  },
+  {
+    icon: Edit3,
+    title: 'Le code de saisie rapide',
+    text: "Tapez simplement « 1402 » dans une case : cela veut dire 14 (note obtenue) et 02 (perfectionnement), soit un total de 16/20. Pas besoin de deux champs séparés.",
+  },
+  {
+    icon: Users,
+    title: 'Absences et périodes',
+    text: "Marquez un élève absent en un clic (il sera exclu du calcul). Changez de période d'évaluation à tout moment sans perdre les notes des autres périodes.",
+  },
+  {
+    icon: Download,
+    title: 'Exportez en un clic',
+    text: "Une fois la saisie terminée, exportez votre fichier au format EducMaster, prêt à être réimporté officiellement.",
+  },
+]
+
+function TutorialOverlay({ onClose }) {
+  const [step, setStep] = useState(0)
+  const isLast = step === TUTORIAL_STEPS.length - 1
+  const current = TUTORIAL_STEPS[step]
+  const Icon = current.icon
+
+  return (
+    <div className="fixed inset-0 z-40 bg-[#F7F5FB] dark:bg-[#140F26] flex flex-col">
+      <div className="flex justify-end p-4">
+        <button onClick={onClose} className="text-sm font-medium opacity-50 px-2 py-1">Passer</button>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+        <div className="w-20 h-20 rounded-3xl bg-[#4C1D95]/10 dark:bg-[#06B6D4]/10 flex items-center justify-center mb-6">
+          <Icon size={34} className="text-[#4C1D95] dark:text-[#06B6D4]" />
+        </div>
+        <h2 className="font-bold text-xl mb-3">{current.title}</h2>
+        <p className="text-sm leading-relaxed opacity-70 max-w-xs">{current.text}</p>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 mb-6">
+        {TUTORIAL_STEPS.map((_, i) => (
+          <div key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-6 bg-[#4C1D95] dark:bg-[#06B6D4]' : 'w-1.5 bg-[#4C1D95]/20 dark:bg-white/20'}`} />
+        ))}
+      </div>
+
+      <div className="p-6 pt-0 max-w-xs w-full mx-auto">
+        <PrimaryButton onClick={() => (isLast ? onClose() : setStep(step + 1))}>
+          <span className="flex items-center justify-center gap-2">
+            {isLast ? "C'est parti !" : 'Suivant'} <ChevronRight size={18} />
+          </span>
+        </PrimaryButton>
+        {step > 0 && (
+          <button onClick={() => setStep(step - 1)} className="w-full py-3 text-sm font-medium opacity-50">Précédent</button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================================
    COMPOSANT RACINE
    ========================================================================== */
 
-export default function App() {
+function AppInner() {
   const [licenseStatus, setLicenseStatus] = useState('checking') // checking | locked | unlocked
   const [license, setLicense] = useState(null)
   const [bannerDismissed, setBannerDismissed] = useState(false)
@@ -1397,6 +1672,8 @@ export default function App() {
   const [morePanelOpen, setMorePanelOpen] = useState(false)
   const [reorderOpen, setReorderOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
+  const [evaluationSwitcherOpen, setEvaluationSwitcherOpen] = useState(false)
+  const [tutorialOpen, setTutorialOpen] = useState(false)
   const [undoStack, setUndoStack] = useState([])
 
   // --- Initialisation ---
@@ -1415,6 +1692,7 @@ export default function App() {
     setPin(localStorage.getItem(LS_PIN) || null)
     setPinLocked(!!localStorage.getItem(LS_PIN))
     setDefaultMode(localStorage.getItem(LS_DEFAULT_MODE) || 'eleve')
+    setTutorialOpen(localStorage.getItem(LS_TUTORIAL) !== '1')
   }, [])
 
   useEffect(() => {
@@ -1436,24 +1714,28 @@ export default function App() {
   }
 
   function pushUndo(matricule, subjKey, prevGrade) {
-    setUndoStack((prev) => [...prev.slice(-19), { classId: activeId, matricule, subjKey, prevGrade }])
+    setUndoStack((prev) => [...prev.slice(-19), { classId: activeId, evalType: activeClass?.evaluationType, matricule, subjKey, prevGrade }])
   }
 
   function handleSetGrade(matricule, subjKey, rawCode) {
     if (!activeClass) return
-    const prevGrade = activeClass.grades?.[matricule]?.[subjKey] || null
+    const ev = activeClass.evaluationType
+    const prevGrade = activeClass.gradesByEval?.[ev]?.[matricule]?.[subjKey] || null
     pushUndo(matricule, subjKey, prevGrade)
     const parsed = parseCode(rawCode)
     updateClass(activeClass.id, (c) => ({
       ...c,
-      grades: {
-        ...c.grades,
-        [matricule]: {
-          ...c.grades?.[matricule],
-          [subjKey]: {
-            rawCode,
-            obtenue: parsed && !Number.isNaN(parsed.obtenue) ? parsed.obtenue : null,
-            perfectionnement: parsed && parsed.perfectionnement !== null && !Number.isNaN(parsed.perfectionnement) ? parsed.perfectionnement : null,
+      gradesByEval: {
+        ...c.gradesByEval,
+        [ev]: {
+          ...c.gradesByEval?.[ev],
+          [matricule]: {
+            ...c.gradesByEval?.[ev]?.[matricule],
+            [subjKey]: {
+              rawCode,
+              obtenue: parsed && !Number.isNaN(parsed.obtenue) ? parsed.obtenue : null,
+              perfectionnement: parsed && parsed.perfectionnement !== null && !Number.isNaN(parsed.perfectionnement) ? parsed.perfectionnement : null,
+            },
           },
         },
       },
@@ -1467,11 +1749,14 @@ export default function App() {
     setUndoStack((prev) => prev.slice(0, -1))
     updateClass(last.classId, (c) => ({
       ...c,
-      grades: {
-        ...c.grades,
-        [last.matricule]: {
-          ...c.grades?.[last.matricule],
-          [last.subjKey]: last.prevGrade,
+      gradesByEval: {
+        ...c.gradesByEval,
+        [last.evalType]: {
+          ...c.gradesByEval?.[last.evalType],
+          [last.matricule]: {
+            ...c.gradesByEval?.[last.evalType]?.[last.matricule],
+            [last.subjKey]: last.prevGrade,
+          },
         },
       },
     }))
@@ -1479,12 +1764,14 @@ export default function App() {
 
   function handleToggleAttendance(matricule) {
     if (!activeClass) return
+    const ev = activeClass.evaluationType
     updateClass(activeClass.id, (c) => {
-      const wasAbsent = c.attendance?.[matricule] === false
-      const nextAttendance = { ...c.attendance }
+      const currentAttendance = c.attendanceByEval?.[ev] || {}
+      const wasAbsent = currentAttendance[matricule] === false
+      const nextAttendance = { ...currentAttendance }
       if (wasAbsent) delete nextAttendance[matricule]
       else nextAttendance[matricule] = false
-      return { ...c, attendance: nextAttendance }
+      return { ...c, attendanceByEval: { ...c.attendanceByEval, [ev]: nextAttendance } }
     })
   }
 
@@ -1501,8 +1788,8 @@ export default function App() {
       entryModeChosen: false,
       roster: [],
       subjects: [],
-      grades: {},
-      attendance: {},
+      gradesByEval: {},
+      attendanceByEval: {},
       updatedAt: Date.now(),
     }
     setClasses((prev) => [...prev, newClass])
@@ -1540,8 +1827,24 @@ export default function App() {
 
   function handleGoWelcome() {
     if (!activeClass) return
-    updateClass(activeClass.id, (c) => ({ ...c, entryModeChosen: false, evaluationType: null, roster: [], subjects: [], grades: {}, attendance: {} }))
+    updateClass(activeClass.id, (c) => ({ ...c, entryModeChosen: false, evaluationType: null, roster: [], subjects: [], gradesByEval: {}, attendanceByEval: {} }))
     setMorePanelOpen(false)
+  }
+
+  function handleSwitchEvaluation(ev) {
+    if (!activeClass) return
+    updateClass(activeClass.id, (c) => ({
+      ...c,
+      evaluationType: ev,
+      gradesByEval: { ...c.gradesByEval, [ev]: c.gradesByEval?.[ev] || {} },
+      attendanceByEval: { ...c.attendanceByEval, [ev]: c.attendanceByEval?.[ev] || {} },
+    }))
+    setEvaluationSwitcherOpen(false)
+  }
+
+  function handleCloseTutorial() {
+    localStorage.setItem(LS_TUTORIAL, '1')
+    setTutorialOpen(false)
   }
 
   function handleResetApplication() {
@@ -1581,7 +1884,15 @@ export default function App() {
   if (!activeClass) {
     return (
       <Screen>
-        <WelcomeScreen onStart={() => handleCreateClass('Ma classe')} onReset={classes.length ? handleResetApplication : undefined} />
+        <WelcomeScreen
+          onStart={() => handleCreateClass('Ma classe')}
+          onDemo={() => {
+            const demo = generateDemoClass()
+            setClasses((prev) => [...prev, demo])
+            setActiveId(demo.id)
+          }}
+          onReset={classes.length ? handleResetApplication : undefined}
+        />
       </Screen>
     )
   }
@@ -1599,7 +1910,12 @@ export default function App() {
   if (!activeClass.evaluationType) {
     return (
       <EvaluationPicker
-        onPick={(ev) => updateClass(activeClass.id, (c) => ({ ...c, evaluationType: ev }))}
+        onPick={(ev) => updateClass(activeClass.id, (c) => ({
+          ...c,
+          evaluationType: ev,
+          gradesByEval: { ...c.gradesByEval, [ev]: c.gradesByEval?.[ev] || {} },
+          attendanceByEval: { ...c.attendanceByEval, [ev]: c.attendanceByEval?.[ev] || {} },
+        }))}
       />
     )
   }
@@ -1615,18 +1931,23 @@ export default function App() {
   }
 
   if (statsOpen) {
-    return <StatsTab klass={activeClass} onClose={() => setStatsOpen(false)} />
+    return <StatsTab klass={{ ...activeClass, grades: getEvalGrades(activeClass), attendance: getEvalAttendance(activeClass) }} onClose={() => setStatsOpen(false)} />
   }
+
+  const activeClassView = { ...activeClass, grades: getEvalGrades(activeClass), attendance: getEvalAttendance(activeClass) }
 
   return (
     <Screen>
       <TopBar
         title={activeClass.className}
-        subtitle={activeClass.evaluationType}
+        subtitle={activeClass.isDemo ? `${activeClass.evaluationType} · Données fictives` : activeClass.evaluationType}
         right={
           <div className="flex items-center gap-1 -mr-1.5">
+            <button onClick={() => setTutorialOpen(true)} title="Aide" className="p-2 rounded-lg active:bg-white/10">
+              <HelpCircle size={18} />
+            </button>
             <button
-              onClick={() => buildExportWorkbook(activeClass)}
+              onClick={() => buildExportWorkbook(activeClassView)}
               title="Exporter"
               className="p-2 rounded-lg active:bg-white/10"
             >
@@ -1648,16 +1969,16 @@ export default function App() {
       <LicenseExpiryBanner license={license} onDismiss={() => setBannerDismissed(true)} />
 
       {activeTab === 'eleves' && (
-        <ElevesTab klass={activeClass} onToggleAttendance={handleToggleAttendance} onRemoveStudent={handleRemoveStudent} />
+        <ElevesTab klass={activeClassView} onToggleAttendance={handleToggleAttendance} onRemoveStudent={handleRemoveStudent} />
       )}
       {activeTab === 'saisie' && (
-        <StudentEntryTab klass={activeClass} onSetGrade={handleSetGrade} onToggleAttendance={handleToggleAttendance} />
+        <StudentEntryTab klass={activeClassView} onSetGrade={handleSetGrade} onToggleAttendance={handleToggleAttendance} />
       )}
       {activeTab === 'matieres' && (
-        <SubjectTab klass={activeClass} onSetGrade={handleSetGrade} />
+        <SubjectTab klass={activeClassView} onSetGrade={handleSetGrade} />
       )}
       {activeTab === 'classement' && (
-        <RecapTab klass={activeClass} onExport={() => buildExportWorkbook(activeClass)} />
+        <RecapTab klass={activeClassView} onExport={() => buildExportWorkbook(activeClassView)} />
       )}
 
       <BottomNav active={activeTab} onChange={setActiveTab} onMore={() => setMorePanelOpen(true)} />
@@ -1677,10 +1998,17 @@ export default function App() {
         <ReorderPanel subjects={activeClass.subjects} onReorder={handleReorderSubjects} onClose={() => setReorderOpen(false)} />
       )}
 
+      {evaluationSwitcherOpen && (
+        <EvaluationSwitcher klass={activeClass} onPick={handleSwitchEvaluation} onClose={() => setEvaluationSwitcherOpen(false)} />
+      )}
+
+      {tutorialOpen && <TutorialOverlay onClose={handleCloseTutorial} />}
+
       {morePanelOpen && (
         <MorePanel
           onClose={() => setMorePanelOpen(false)}
           onSwitchClass={() => { setMorePanelOpen(false); setClassSwitcherOpen(true) }}
+          onSwitchEvaluation={() => { setMorePanelOpen(false); setEvaluationSwitcherOpen(true) }}
           onReorder={() => { setMorePanelOpen(false); setReorderOpen(true) }}
           onStats={() => { setMorePanelOpen(false); setStatsOpen(true) }}
           dark={dark}
@@ -1697,5 +2025,13 @@ export default function App() {
         />
       )}
     </Screen>
+  )
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppInner />
+    </ErrorBoundary>
   )
 }
