@@ -22,10 +22,10 @@ const EVALUATION_TYPES = [
 const PASSING_AVERAGE = 10 // seuil admis / non admis sur la moyenne générale
 // Phase actuelle : découverte libre, sans licence. Repasser à true quand la
 // commercialisation démarre — tout le système de licence reste prêt derrière ce réglage.
-const LICENSE_ENABLED = false
+const LICENSE_ENABLED = true
 const SUBJECT_PASS = 10 // seuil de réussite par matière
 
-const APP_NAME = 'NoteExpress'
+const APP_NAME = 'EducNotes'
 const APP_VERSION = '2.0.0'
 const CACHE_HINT = 'v2' // à faire correspondre avec public/sw.js -> CACHE_NAME
 
@@ -498,7 +498,7 @@ function buildExportWorkbook(klass) {
 
 function Screen({ children, className = '' }) {
   return (
-    <div className={`min-h-screen bg-[#F7F5FB] dark:bg-[#140F26] text-[#4C1D95] dark:text-[#EDE9FE] transition-colors ${className}`}>
+    <div className={`min-h-screen bg-[#F6F8F4] dark:bg-[#0E1F17] text-[#1B3A2F] dark:text-[#E7F0E5] transition-colors ${className}`}>
       {children}
     </div>
   )
@@ -506,7 +506,7 @@ function Screen({ children, className = '' }) {
 
 function TopBar({ title, subtitle, onBack, right }) {
   return (
-    <div className="sticky top-0 z-20 bg-[#4C1D95] dark:bg-[#140F26] text-[#F7F5FB] px-4 pt-[calc(env(safe-area-inset-top)+0.9rem)] pb-3 flex items-center gap-3 border-b border-[#06B6D4]/30 shadow-sm">
+    <div className="sticky top-0 z-20 bg-[#1B3A2F] dark:bg-[#0E1F17] text-[#F6F8F4] px-4 pt-[calc(env(safe-area-inset-top)+0.9rem)] pb-3 flex items-center gap-3 border-b border-[#8BC34A]/30 shadow-sm">
       {onBack && (
         <button onClick={onBack} className="p-1.5 -ml-1.5 rounded-lg active:bg-white/10">
           <ChevronLeft size={22} />
@@ -514,7 +514,7 @@ function TopBar({ title, subtitle, onBack, right }) {
       )}
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-[1.05rem] truncate">{title}</div>
-        {subtitle && <div className="text-xs text-[#06B6D4] truncate">{subtitle}</div>}
+        {subtitle && <div className="text-xs text-[#8BC34A] truncate">{subtitle}</div>}
       </div>
       {right}
     </div>
@@ -527,7 +527,7 @@ function PrimaryButton({ children, onClick, disabled, className = '', type = 'bu
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`w-full py-3.5 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] font-semibold text-[0.98rem] active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 shadow-sm ${className}`}
+      className={`w-full py-3.5 rounded-2xl bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] font-semibold text-[0.98rem] active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 shadow-sm ${className}`}
     >
       {children}
     </button>
@@ -538,7 +538,7 @@ function GhostButton({ children, onClick, className = '' }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full py-3 rounded-2xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 font-medium text-[0.95rem] active:bg-black/5 dark:active:bg-white/5 transition ${className}`}
+      className={`w-full py-3 rounded-2xl border border-[#1B3A2F]/20 dark:border-[#8BC34A]/30 font-medium text-[0.95rem] active:bg-black/5 dark:active:bg-white/5 transition ${className}`}
     >
       {children}
     </button>
@@ -547,7 +547,7 @@ function GhostButton({ children, onClick, className = '' }) {
 
 function EmptyState({ icon: Icon, title, hint }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-16 px-8 text-[#4C1D95]/50 dark:text-[#EDE9FE]/40">
+    <div className="flex flex-col items-center justify-center text-center py-16 px-8 text-[#1B3A2F]/50 dark:text-[#E7F0E5]/40">
       {Icon && <Icon size={36} className="mb-3 opacity-60" />}
       <div className="font-medium">{title}</div>
       {hint && <div className="text-sm mt-1">{hint}</div>}
@@ -559,7 +559,7 @@ function EmptyState({ icon: Icon, title, hint }) {
    LICENCE — écran de verrouillage + panneau admin de génération de codes
    ========================================================================== */
 
-function LicenseGate({ onActivated }) {
+function LicenseGate({ onActivated, onCancel }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [adminOpen, setAdminOpen] = useState(false)
@@ -596,7 +596,7 @@ function LicenseGate({ onActivated }) {
     saveLicense(trialCode)
     localStorage.setItem(LS_TRIAL_USED, '1')
 
-    const message = `Nouvel essai NoteExpress démarré\nÉcole : ${trialSchool.trim()}\nContact : ${trialPhone.trim()}\nDurée : ${TRIAL_DAYS} jours`
+    const message = `Nouvel essai EducNotes démarré\nÉcole : ${trialSchool.trim()}\nContact : ${trialPhone.trim()}\nDurée : ${TRIAL_DAYS} jours`
     const waUrl = `https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
     try {
       window.open(waUrl, '_blank')
@@ -641,7 +641,7 @@ function LicenseGate({ onActivated }) {
                 value={adminPass}
                 onChange={(e) => setAdminPass(e.target.value)}
                 placeholder="Code administrateur"
-                className="w-full px-4 py-3 rounded-xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-white dark:bg-[#241B3F] outline-none focus:ring-2 focus:ring-[#06B6D4]"
+                className="w-full px-4 py-3 rounded-xl border border-[#1B3A2F]/20 dark:border-[#8BC34A]/30 bg-white dark:bg-[#1E3329] outline-none focus:ring-2 focus:ring-[#8BC34A]"
               />
               <PrimaryButton onClick={() => adminPass === ADMIN_PASSCODE ? setAdminUnlocked(true) : setError('Code administrateur incorrect')}>
                 Déverrouiller
@@ -650,7 +650,7 @@ function LicenseGate({ onActivated }) {
             </>
           ) : (
             <>
-              <div className="flex items-center gap-2 text-[#06B6D4] mb-1">
+              <div className="flex items-center gap-2 text-[#8BC34A] mb-1">
                 <ShieldCheck size={18} />
                 <span className="font-medium text-sm">Générateur de licence</span>
               </div>
@@ -660,7 +660,7 @@ function LicenseGate({ onActivated }) {
                   value={school}
                   onChange={(e) => setSchool(e.target.value)}
                   placeholder="Ex : EPP Ganmi A"
-                  className="w-full px-4 py-3 rounded-xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-white dark:bg-[#241B3F] outline-none focus:ring-2 focus:ring-[#06B6D4]"
+                  className="w-full px-4 py-3 rounded-xl border border-[#1B3A2F]/20 dark:border-[#8BC34A]/30 bg-white dark:bg-[#1E3329] outline-none focus:ring-2 focus:ring-[#8BC34A]"
                 />
               </div>
               <div>
@@ -670,7 +670,7 @@ function LicenseGate({ onActivated }) {
                     <button
                       key={d}
                       onClick={() => setDays(d)}
-                      className={`py-2 rounded-xl text-sm font-medium border ${days === d ? 'bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] border-transparent' : 'border-[#4C1D95]/20 dark:border-[#06B6D4]/30'}`}
+                      className={`py-2 rounded-xl text-sm font-medium border ${days === d ? 'bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] border-transparent' : 'border-[#1B3A2F]/20 dark:border-[#8BC34A]/30'}`}
                     >
                       {d === 365 ? '1 an' : `${d} j`}
                     </button>
@@ -679,10 +679,10 @@ function LicenseGate({ onActivated }) {
               </div>
               <PrimaryButton onClick={handleGenerate} disabled={!school.trim()}>Générer le code</PrimaryButton>
               {generated && (
-                <div className="p-4 rounded-2xl bg-[#4C1D95]/5 dark:bg-white/5 space-y-2">
+                <div className="p-4 rounded-2xl bg-[#1B3A2F]/5 dark:bg-white/5 space-y-2">
                   <div className="text-xs opacity-60">Code à transmettre à l'école (WhatsApp, SMS...)</div>
                   <div className="font-mono text-sm break-all">{generated}</div>
-                  <button onClick={handleCopy} className="flex items-center gap-1.5 text-sm text-[#06B6D4] font-medium">
+                  <button onClick={handleCopy} className="flex items-center gap-1.5 text-sm text-[#8BC34A] font-medium">
                     <Copy size={15} /> {copied ? 'Copié !' : 'Copier le code'}
                   </button>
                 </div>
@@ -697,16 +697,21 @@ function LicenseGate({ onActivated }) {
   return (
     <Screen>
       <div className="min-h-screen flex flex-col justify-center px-6 py-10 max-w-md mx-auto">
+        {onCancel && (
+          <button onClick={onCancel} className="flex items-center gap-1 text-sm font-medium opacity-50 mb-4 -ml-1">
+            <ChevronLeft size={16} /> Retour
+          </button>
+        )}
         <div className="flex flex-col items-center mb-8">
-          <button onClick={handleLogoTap} className="w-16 h-16 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] flex items-center justify-center mb-4 active:scale-95 transition">
-            <span className="text-white dark:text-[#140F26] font-bold text-xl">NE</span>
+          <button onClick={handleLogoTap} className="w-16 h-16 rounded-2xl bg-[#1B3A2F] dark:bg-[#8BC34A] flex items-center justify-center mb-4 active:scale-95 transition">
+            <span className="text-white dark:text-[#0E1F17] font-bold text-xl">EN</span>
           </button>
           <h1 className="text-xl font-bold">{APP_NAME}</h1>
           <p className="text-sm opacity-60 mt-1 text-center">Saisie rapide des notes EducMaster</p>
         </div>
 
         {!trialAlreadyUsed && (
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-[#4C1D95] to-[#06B6D4] text-white shadow-sm mb-4">
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-[#1B3A2F] to-[#8BC34A] text-white shadow-sm mb-4">
             <div className="flex items-center gap-2 text-sm font-semibold mb-1.5">
               <Sparkles size={16} /> Testez avant de vous engager
             </div>
@@ -714,7 +719,7 @@ function LicenseGate({ onActivated }) {
               {TRIAL_DAYS} jours d'accès complet. Indiquez juste votre école et un contact WhatsApp pour démarrer.
             </p>
             {!trialOpen ? (
-              <button onClick={() => setTrialOpen(true)} className="w-full py-3 rounded-xl bg-white text-[#4C1D95] font-semibold text-sm active:scale-[0.98] transition">
+              <button onClick={() => setTrialOpen(true)} className="w-full py-3 rounded-xl bg-white text-[#1B3A2F] font-semibold text-sm active:scale-[0.98] transition">
                 Démarrer l'essai de {TRIAL_DAYS} jours
               </button>
             ) : (
@@ -723,19 +728,19 @@ function LicenseGate({ onActivated }) {
                   value={trialSchool}
                   onChange={(e) => setTrialSchool(e.target.value)}
                   placeholder="Nom de l'école"
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-white/95 text-[#140F26] text-sm outline-none placeholder:text-[#140F26]/40"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-white/95 text-[#0E1F17] text-sm outline-none placeholder:text-[#0E1F17]/40"
                 />
                 <input
                   value={trialPhone}
                   onChange={(e) => setTrialPhone(e.target.value)}
                   placeholder="Numéro WhatsApp"
                   inputMode="tel"
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-white/95 text-[#140F26] text-sm outline-none placeholder:text-[#140F26]/40"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-white/95 text-[#0E1F17] text-sm outline-none placeholder:text-[#0E1F17]/40"
                 />
                 <button
                   onClick={handleConfirmTrial}
                   disabled={!trialSchool.trim() || !trialPhone.trim()}
-                  className="w-full py-3 rounded-xl bg-white text-[#4C1D95] font-semibold text-sm active:scale-[0.98] transition disabled:opacity-50"
+                  className="w-full py-3 rounded-xl bg-white text-[#1B3A2F] font-semibold text-sm active:scale-[0.98] transition disabled:opacity-50"
                 >
                   Envoyer et démarrer l'essai
                 </button>
@@ -745,9 +750,9 @@ function LicenseGate({ onActivated }) {
           </div>
         )}
 
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#241B3F] shadow-sm space-y-4">
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#1E3329] shadow-sm space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium">
-            <KeyRound size={16} className="text-[#06B6D4]" />
+            <KeyRound size={16} className="text-[#8BC34A]" />
             {trialAlreadyUsed ? "Vous avez déjà un code ?" : 'Ou entrez un code déjà reçu'}
           </div>
           <p className="text-sm opacity-70">
@@ -757,7 +762,7 @@ function LicenseGate({ onActivated }) {
             value={code}
             onChange={(e) => { setCode(e.target.value); setError('') }}
             placeholder="NX-XXXXX-XXXXX-XXXXX"
-            className="w-full px-4 py-3 rounded-xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-transparent outline-none focus:ring-2 focus:ring-[#06B6D4] font-mono text-sm"
+            className="w-full px-4 py-3 rounded-xl border border-[#1B3A2F]/20 dark:border-[#8BC34A]/30 bg-transparent outline-none focus:ring-2 focus:ring-[#8BC34A] font-mono text-sm"
           />
           {error && <p className="text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={15} />{error}</p>}
           <PrimaryButton onClick={handleActivate} disabled={!code.trim()}>Activer ce code</PrimaryButton>
@@ -807,11 +812,11 @@ function PinLockScreen({ pin, onUnlock }) {
   return (
     <Screen>
       <div className="min-h-screen flex flex-col items-center justify-center px-6">
-        <Lock size={28} className="mb-4 text-[#06B6D4]" />
+        <Lock size={28} className="mb-4 text-[#8BC34A]" />
         <p className="text-sm opacity-60 mb-6">Entrez le code PIN</p>
         <div className={`flex gap-3 mb-8 ${error ? 'animate-pulse' : ''}`}>
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className={`w-3.5 h-3.5 rounded-full ${i < entry.length ? (error ? 'bg-red-500' : 'bg-[#4C1D95] dark:bg-[#06B6D4]') : 'bg-[#4C1D95]/15 dark:bg-white/15'}`} />
+            <div key={i} className={`w-3.5 h-3.5 rounded-full ${i < entry.length ? (error ? 'bg-red-500' : 'bg-[#1B3A2F] dark:bg-[#8BC34A]') : 'bg-[#1B3A2F]/15 dark:bg-white/15'}`} />
           ))}
         </div>
         <div className="grid grid-cols-3 gap-4 max-w-[280px]">
@@ -820,7 +825,7 @@ function PinLockScreen({ pin, onUnlock }) {
               <button
                 key={i}
                 onClick={() => (d === '⌫' ? setEntry(entry.slice(0, -1)) : press(d))}
-                className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-medium bg-white dark:bg-[#241B3F] active:bg-[#4C1D95]/10 dark:active:bg-white/10 shadow-sm"
+                className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-medium bg-white dark:bg-[#1E3329] active:bg-[#1B3A2F]/10 dark:active:bg-white/10 shadow-sm"
               >
                 {d}
               </button>
@@ -842,8 +847,8 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F7F5FB] dark:bg-[#140F26] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#4C1D95]/10 dark:border-white/10">
+      <div className="w-full bg-[#F6F8F4] dark:bg-[#0E1F17] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1B3A2F]/10 dark:border-white/10">
           <h2 className="font-semibold">Mes classes</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
@@ -852,7 +857,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
             <div
               key={c.id}
               onClick={() => onSelect(c.id)}
-              className={`p-4 rounded-2xl flex items-center justify-between cursor-pointer ${c.id === activeId ? 'bg-[#4C1D95] text-white dark:bg-[#06B6D4] dark:text-[#140F26]' : 'bg-white dark:bg-[#241B3F]'}`}
+              className={`p-4 rounded-2xl flex items-center justify-between cursor-pointer ${c.id === activeId ? 'bg-[#1B3A2F] text-white dark:bg-[#8BC34A] dark:text-[#0E1F17]' : 'bg-white dark:bg-[#1E3329]'}`}
             >
               <div className="min-w-0">
                 <div className="font-medium truncate">{c.className}</div>
@@ -870,7 +875,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
           ))}
           {classes.length === 0 && <EmptyState icon={Layers} title="Aucune classe" hint="Créez votre première classe" />}
         </div>
-        <div className="p-4 border-t border-[#4C1D95]/10 dark:border-white/10">
+        <div className="p-4 border-t border-[#1B3A2F]/10 dark:border-white/10">
           {creating ? (
             <div className="space-y-2">
               <input
@@ -878,7 +883,7 @@ function ClassSwitcher({ classes, activeId, onSelect, onCreate, onDelete, onClos
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nom de la classe (ex : CM2 Ganmi A)"
-                className="w-full px-4 py-3 rounded-xl border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-white dark:bg-[#241B3F] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-[#1B3A2F]/20 dark:border-[#8BC34A]/30 bg-white dark:bg-[#1E3329] outline-none"
               />
               <div className="flex gap-2">
                 <GhostButton onClick={() => setCreating(false)}>Annuler</GhostButton>
@@ -913,14 +918,14 @@ function ReorderPanel({ subjects, onReorder, onClose }) {
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F7F5FB] dark:bg-[#140F26] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#4C1D95]/10 dark:border-white/10">
+      <div className="w-full bg-[#F6F8F4] dark:bg-[#0E1F17] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1B3A2F]/10 dark:border-white/10">
           <h2 className="font-semibold">Réorganiser les matières</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {list.map((s, idx) => (
-            <div key={s.key} className="p-3.5 rounded-xl bg-white dark:bg-[#241B3F] flex items-center justify-between">
+            <div key={s.key} className="p-3.5 rounded-xl bg-white dark:bg-[#1E3329] flex items-center justify-between">
               <span className="font-medium text-sm">{s.label}</span>
               <div className="flex gap-1">
                 <button onClick={() => move(idx, -1)} disabled={idx === 0} className="p-2 disabled:opacity-30"><ArrowUp size={16} /></button>
@@ -929,7 +934,7 @@ function ReorderPanel({ subjects, onReorder, onClose }) {
             </div>
           ))}
         </div>
-        <div className="p-4 border-t border-[#4C1D95]/10 dark:border-white/10">
+        <div className="p-4 border-t border-[#1B3A2F]/10 dark:border-white/10">
           <PrimaryButton onClick={() => { onReorder(list); onClose() }}>Enregistrer l'ordre</PrimaryButton>
         </div>
       </div>
@@ -944,8 +949,8 @@ function ReorderPanel({ subjects, onReorder, onClose }) {
 function EvaluationSwitcher({ klass, onPick, onClose }) {
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F7F5FB] dark:bg-[#140F26] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#4C1D95]/10 dark:border-white/10">
+      <div className="w-full bg-[#F6F8F4] dark:bg-[#0E1F17] rounded-t-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1B3A2F]/10 dark:border-white/10">
           <div>
             <h2 className="font-semibold">Période d'évaluation</h2>
             <p className="text-xs opacity-60 mt-0.5">Chaque période garde ses propres notes.</p>
@@ -960,7 +965,7 @@ function EvaluationSwitcher({ klass, onPick, onClose }) {
               <button
                 key={ev}
                 onClick={() => onPick(ev)}
-                className={`w-full p-4 rounded-2xl flex items-center justify-between text-left ${isActive ? 'bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26]' : 'bg-white dark:bg-[#241B3F]'}`}
+                className={`w-full p-4 rounded-2xl flex items-center justify-between text-left ${isActive ? 'bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17]' : 'bg-white dark:bg-[#1E3329]'}`}
               >
                 <div>
                   <div className="font-medium text-sm">{ev}</div>
@@ -992,7 +997,7 @@ const TABS = [
 
 function BottomNav({ active, onChange, onMore }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-[#241B3F] border-t border-[#4C1D95]/10 dark:border-white/10 pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-[#1E3329] border-t border-[#1B3A2F]/10 dark:border-white/10 pb-[env(safe-area-inset-bottom)]">
       <div className="flex">
         {TABS.map((t) => {
           const Icon = t.icon
@@ -1003,8 +1008,8 @@ function BottomNav({ active, onChange, onMore }) {
               onClick={() => (t.key === 'plus' ? onMore() : onChange(t.key))}
               className="flex-1 flex flex-col items-center gap-1 py-2.5"
             >
-              <Icon size={20} className={isActive ? 'text-[#06B6D4]' : 'opacity-50'} />
-              <span className={`text-[0.68rem] ${isActive ? 'text-[#06B6D4] font-medium' : 'opacity-50'}`}>{t.label}</span>
+              <Icon size={20} className={isActive ? 'text-[#8BC34A]' : 'opacity-50'} />
+              <span className={`text-[0.68rem] ${isActive ? 'text-[#8BC34A] font-medium' : 'opacity-50'}`}>{t.label}</span>
             </button>
           )
         })}
@@ -1021,7 +1026,7 @@ function MorePanel({
   const [newPin, setNewPin] = useState('')
 
   const Row = ({ icon: Icon, label, onClick, danger }) => (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#241B3F] ${danger ? 'text-red-500' : ''}`}>
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E3329] ${danger ? 'text-red-500' : ''}`}>
       <Icon size={18} />
       <span className="flex-1 text-left text-sm font-medium">{label}</span>
       <ChevronRight size={16} className="opacity-40" />
@@ -1030,8 +1035,8 @@ function MorePanel({
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-end" onClick={onClose}>
-      <div className="w-full bg-[#F7F5FB] dark:bg-[#140F26] rounded-t-3xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#4C1D95]/10 dark:border-white/10">
+      <div className="w-full bg-[#F6F8F4] dark:bg-[#0E1F17] rounded-t-3xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-[#1B3A2F]/10 dark:border-white/10">
           <h2 className="font-semibold">Plus</h2>
           <button onClick={onClose}><X size={20} /></button>
         </div>
@@ -1042,12 +1047,12 @@ function MorePanel({
           <Row icon={ArrowUp} label="Réorganiser les matières" onClick={onReorder} />
           <Row icon={RotateCcw} label={canUndo ? 'Annuler la dernière saisie' : 'Rien à annuler'} onClick={canUndo ? onUndo : undefined} />
 
-          <button onClick={onToggleDark} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#241B3F]">
+          <button onClick={onToggleDark} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E3329]">
             {dark ? <Sun size={18} /> : <Moon size={18} />}
             <span className="flex-1 text-left text-sm font-medium">Mode {dark ? 'clair' : 'sombre'}</span>
           </button>
 
-          <button onClick={() => onSetDefaultMode(defaultMode === 'eleve' ? 'matiere' : 'eleve')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#241B3F]">
+          <button onClick={() => onSetDefaultMode(defaultMode === 'eleve' ? 'matiere' : 'eleve')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white dark:bg-[#1E3329]">
             <ClipboardList size={18} />
             <span className="flex-1 text-left text-sm font-medium">Mode de saisie par défaut : {defaultMode === 'eleve' ? 'par élève' : 'par matière'}</span>
           </button>
@@ -1055,13 +1060,13 @@ function MorePanel({
           {!pinSetup ? (
             <Row icon={Lock} label={pin ? 'Changer / retirer le PIN' : 'Verrouiller par code PIN'} onClick={() => setPinSetup(true)} />
           ) : (
-            <div className="p-4 rounded-xl bg-white dark:bg-[#241B3F] space-y-2">
+            <div className="p-4 rounded-xl bg-white dark:bg-[#1E3329] space-y-2">
               <input
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                 placeholder="Nouveau code à 4 chiffres"
                 inputMode="numeric"
-                className="w-full px-3 py-2.5 rounded-lg border border-[#4C1D95]/20 dark:border-[#06B6D4]/30 bg-transparent outline-none"
+                className="w-full px-3 py-2.5 rounded-lg border border-[#1B3A2F]/20 dark:border-[#8BC34A]/30 bg-transparent outline-none"
               />
               <div className="flex gap-2">
                 {pin && <GhostButton onClick={() => { onRemovePin(); setPinSetup(false) }}>Retirer le PIN</GhostButton>}
@@ -1089,28 +1094,28 @@ function WelcomeScreen({ onStart, onReset, onDemo }) {
   return (
     <Screen>
       <div className="min-h-screen flex flex-col items-center justify-center px-7 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] flex items-center justify-center mb-5 rotate-3">
-          <span className="text-white dark:text-[#140F26] font-black text-lg -rotate-3">NE</span>
+        <div className="w-14 h-14 rounded-2xl bg-[#1B3A2F] dark:bg-[#8BC34A] flex items-center justify-center mb-5 rotate-3">
+          <span className="text-white dark:text-[#0E1F17] font-black text-lg -rotate-3">EN</span>
         </div>
 
         <h1 className="font-black tracking-tight leading-[1.05] text-4xl sm:text-5xl mb-3">
-          <span className="text-[#4C1D95] dark:text-[#EDE9FE]">Note</span>
-          <span className="text-[#06B6D4]">Express</span>
+          <span className="text-[#1B3A2F] dark:text-[#E7F0E5]">Educ</span>
+          <span className="text-[#8BC34A]">Notes</span>
         </h1>
 
         <p className="text-[0.95rem] leading-relaxed max-w-xs mb-8 opacity-75">
-          Le stress de la saisie de dernière minute, les erreurs qu'on découvre trop tard, les heures qu'on ne reverra jamais. NoteExpress vous rend ce temps.
+          Le stress de la saisie de dernière minute, les erreurs qu'on découvre trop tard, les heures qu'on ne reverra jamais. EducNotes vous rend ce temps.
         </p>
 
         <div className="w-full max-w-xs space-y-3">
-          <PrimaryButton onClick={onStart}>
-            <span className="flex items-center justify-center gap-2">Commencer <ChevronRight size={18} /></span>
-          </PrimaryButton>
           {onDemo && (
-            <GhostButton onClick={onDemo}>
+            <PrimaryButton onClick={onDemo}>
               <span className="flex items-center justify-center gap-2"><Sparkles size={16} /> Découvrir l'app en 2 minutes</span>
-            </GhostButton>
+            </PrimaryButton>
           )}
+          <GhostButton onClick={onStart}>
+            <span className="flex items-center justify-center gap-2">Commencer <ChevronRight size={18} /></span>
+          </GhostButton>
           {onReset && (
             <button onClick={onReset} className="w-full py-2 text-xs font-medium text-red-500/80 flex items-center justify-center gap-1.5">
               <Trash2 size={13} /> Tout effacer et repartir de zéro
@@ -1146,22 +1151,22 @@ function ImportScreen({ onImported, onBack, onReset }) {
     <Screen>
       <TopBar title="Votre classe" onBack={onBack} />
       <div className="p-6 flex flex-col items-center text-center pt-10">
-        <div className="w-16 h-16 rounded-2xl bg-[#06B6D4]/10 flex items-center justify-center mb-5 -rotate-2">
-          <Upload size={26} className="text-[#06B6D4] rotate-2" />
+        <div className="w-16 h-16 rounded-2xl bg-[#8BC34A]/10 flex items-center justify-center mb-5 -rotate-2">
+          <Upload size={26} className="text-[#8BC34A] rotate-2" />
         </div>
         <h2 className="font-bold text-xl mb-2">On récupère votre liste</h2>
 
-        <div className="w-full max-w-xs mb-7 text-left bg-white dark:bg-[#241B3F] rounded-2xl p-4 space-y-2.5">
+        <div className="w-full max-w-xs mb-7 text-left bg-white dark:bg-[#1E3329] rounded-2xl p-4 space-y-2.5">
           <div className="flex gap-2.5 text-sm">
-            <span className="shrink-0 w-5 h-5 rounded-full bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] text-xs font-bold flex items-center justify-center">1</span>
+            <span className="shrink-0 w-5 h-5 rounded-full bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] text-xs font-bold flex items-center justify-center">1</span>
             <span>Ouvrez EducMaster et exportez le fichier Excel de votre classe, comme d'habitude.</span>
           </div>
           <div className="flex gap-2.5 text-sm">
-            <span className="shrink-0 w-5 h-5 rounded-full bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] text-xs font-bold flex items-center justify-center">2</span>
+            <span className="shrink-0 w-5 h-5 rounded-full bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] text-xs font-bold flex items-center justify-center">2</span>
             <span>Appuyez sur le bouton ci-dessous et choisissez ce fichier.</span>
           </div>
           <div className="flex gap-2.5 text-sm">
-            <span className="shrink-0 w-5 h-5 rounded-full bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] text-xs font-bold flex items-center justify-center">3</span>
+            <span className="shrink-0 w-5 h-5 rounded-full bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] text-xs font-bold flex items-center justify-center">3</span>
             <span>Vos élèves et matières apparaissent automatiquement.</span>
           </div>
         </div>
@@ -1170,9 +1175,9 @@ function ImportScreen({ onImported, onBack, onReset }) {
         <button
           onClick={() => fileRef.current?.click()}
           disabled={loading}
-          className="w-full max-w-xs p-8 rounded-3xl border-2 border-dashed border-[#4C1D95]/25 dark:border-[#06B6D4]/25 flex flex-col items-center gap-3 active:scale-[0.99] transition disabled:opacity-50"
+          className="w-full max-w-xs p-8 rounded-3xl border-2 border-dashed border-[#1B3A2F]/25 dark:border-[#8BC34A]/25 flex flex-col items-center gap-3 active:scale-[0.99] transition disabled:opacity-50"
         >
-          <Upload size={26} className="text-[#4C1D95] dark:text-[#06B6D4]" />
+          <Upload size={26} className="text-[#1B3A2F] dark:text-[#8BC34A]" />
           <div className="font-semibold text-sm">{loading ? 'Lecture du fichier…' : 'Choisir le fichier .xlsx'}</div>
           <div className="text-xs opacity-50">Un tap suffit</div>
         </button>
@@ -1206,7 +1211,7 @@ function EvaluationPicker({ onPick }) {
           <button
             key={ev}
             onClick={() => onPick(ev)}
-            className="w-full p-4 rounded-2xl bg-white dark:bg-[#241B3F] text-left flex items-center justify-between shadow-sm active:scale-[0.99] transition"
+            className="w-full p-4 rounded-2xl bg-white dark:bg-[#1E3329] text-left flex items-center justify-between shadow-sm active:scale-[0.99] transition"
           >
             <span className="font-medium text-sm">{ev}</span>
             <ChevronRight size={18} className="opacity-40" />
@@ -1223,15 +1228,15 @@ function EntryModePicker({ onPick }) {
       <TopBar title="Mode de saisie" />
       <div className="p-5 pt-8 space-y-3">
         <p className="text-sm opacity-60 px-1 mb-2">Comment souhaitez-vous saisir les notes ? Vous pourrez changer à tout moment.</p>
-        <button onClick={() => onPick('eleve')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#241B3F] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
-          <Users size={26} className="text-[#06B6D4]" />
+        <button onClick={() => onPick('eleve')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#1E3329] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
+          <Users size={26} className="text-[#8BC34A]" />
           <div>
             <div className="font-semibold">Par élève</div>
             <div className="text-xs opacity-60">Un élève à la fois, toutes ses matières</div>
           </div>
         </button>
-        <button onClick={() => onPick('matiere')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#241B3F] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
-          <BookOpen size={26} className="text-[#06B6D4]" />
+        <button onClick={() => onPick('matiere')} className="w-full p-5 rounded-2xl bg-white dark:bg-[#1E3329] text-left shadow-sm active:scale-[0.99] transition flex items-center gap-4">
+          <BookOpen size={26} className="text-[#8BC34A]" />
           <div>
             <div className="font-semibold">Par matière</div>
             <div className="text-xs opacity-60">Une matière à la fois, tous les élèves</div>
@@ -1247,12 +1252,12 @@ function GradeBreakdown({ grade }) {
   const perf = grade.perfectionnement ?? 0
   const total = toNum(grade.obtenue) + toNum(perf)
   return (
-    <div className="mt-2 pt-2 border-t border-[#4C1D95]/10 dark:border-[#06B6D4]/15 flex items-center justify-between">
+    <div className="mt-2 pt-2 border-t border-[#1B3A2F]/10 dark:border-[#8BC34A]/15 flex items-center justify-between">
       <div className="text-xs opacity-60">
         Note : <span className="font-semibold opacity-100">{formatNum(grade.obtenue)}</span>
         {'  '}| Perf : <span className="font-semibold opacity-100">{formatNum(perf)}</span>
       </div>
-      <div className="px-2.5 py-1 rounded-lg bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] text-xs font-bold">
+      <div className="px-2.5 py-1 rounded-lg bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] text-xs font-bold">
         {formatNum(total)}/20
       </div>
     </div>
@@ -1263,7 +1268,7 @@ function GradeBreakdown({ grade }) {
    SAISIE PAR ÉLÈVE
    ========================================================================== */
 
-function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
+function StudentEntryTab({ klass, onSetGrade, onToggleAttendance, locked, onBlockedTap }) {
   const { roster, subjects, grades, attendance } = klass
   const [index, setIndex] = useState(0)
   const student = roster[index]
@@ -1299,14 +1304,14 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
         <button onClick={() => setIndex(Math.min(roster.length - 1, index + 1))} disabled={index === roster.length - 1} className="p-2 disabled:opacity-30"><ChevronRight size={20} /></button>
       </div>
 
-      {!isAbsent && subjects.length > 0 && (
+      {!isAbsent && subjects.length > 0 && !locked && (
         <div className="px-4 pb-3">
           <div className="flex items-center justify-between text-xs mb-1.5">
             <span className="opacity-50 font-medium">{filledCount} / {subjects.length} matières saisies</span>
             {filledCount === subjects.length && <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1"><Check size={13} /> Complet</span>}
           </div>
-          <div className="h-1.5 rounded-full bg-[#4C1D95]/10 dark:bg-white/10 overflow-hidden">
-            <div className="h-full bg-[#06B6D4] transition-all" style={{ width: `${progressPct}%` }} />
+          <div className="h-1.5 rounded-full bg-[#1B3A2F]/10 dark:bg-white/10 overflow-hidden">
+            <div className="h-full bg-[#8BC34A] transition-all" style={{ width: `${progressPct}%` }} />
           </div>
         </div>
       )}
@@ -1329,22 +1334,31 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
             const g = studentGrades[s.key]
             const isFilled = g?.obtenue !== null && g?.obtenue !== undefined
             return (
-              <div key={s.key} className={`p-3.5 rounded-2xl bg-white dark:bg-[#241B3F] border transition-colors ${isFilled ? 'border-[#06B6D4]/30' : 'border-transparent'}`}>
+              <div key={s.key} className={`p-3.5 rounded-2xl bg-white dark:bg-[#1E3329] border transition-colors ${isFilled ? 'border-[#8BC34A]/30' : 'border-transparent'}`}>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-medium flex-1 min-w-0 truncate flex items-center gap-1.5">
-                    {isFilled && <Check size={13} className="text-[#06B6D4] shrink-0" />}
+                    {isFilled && <Check size={13} className="text-[#8BC34A] shrink-0" />}
                     {s.label}
                   </span>
-                  <input
-                    ref={(el) => (inputRefs.current[s.key] = el)}
-                    value={g?.rawCode ?? ''}
-                    onChange={(e) => handleChange(s.key, e.target.value)}
-                    placeholder="1402"
-                    inputMode="decimal"
-                    className="w-24 text-center px-2 py-2.5 rounded-lg border border-[#4C1D95]/15 dark:border-[#06B6D4]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#06B6D4] font-mono text-[15px] font-semibold"
-                  />
+                  {locked ? (
+                    <button
+                      onClick={onBlockedTap}
+                      className="w-24 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg border border-dashed border-[#1B3A2F]/25 dark:border-[#8BC34A]/25 text-[#1B3A2F]/40 dark:text-[#8BC34A]/50"
+                    >
+                      <Lock size={14} />
+                    </button>
+                  ) : (
+                    <input
+                      ref={(el) => (inputRefs.current[s.key] = el)}
+                      value={g?.rawCode ?? ''}
+                      onChange={(e) => handleChange(s.key, e.target.value)}
+                      placeholder="1402"
+                      inputMode="decimal"
+                      className="w-24 text-center px-2 py-2.5 rounded-lg border border-[#1B3A2F]/15 dark:border-[#8BC34A]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#8BC34A] font-mono text-[15px] font-semibold"
+                    />
+                  )}
                 </div>
-                <GradeBreakdown grade={g} />
+                {!locked && <GradeBreakdown grade={g} />}
               </div>
             )
           })}
@@ -1371,7 +1385,7 @@ function ElevesTab({ klass, onToggleAttendance, onRemoveStudent }) {
         const r = byMatricule[student.matricule]
         const isAbsent = attendance?.[student.matricule] === false
         return (
-          <div key={student.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#241B3F] flex items-center gap-3">
+          <div key={student.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#1E3329] flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <div className="font-medium text-sm truncate">{student.nom} {student.prenoms}</div>
               <div className="text-xs opacity-50 truncate">Matricule {student.matricule}</div>
@@ -1400,7 +1414,7 @@ function ElevesTab({ klass, onToggleAttendance, onRemoveStudent }) {
    SAISIE PAR MATIÈRE
    ========================================================================== */
 
-function SubjectTab({ klass, onSetGrade }) {
+function SubjectTab({ klass, onSetGrade, locked, onBlockedTap }) {
   const { roster, subjects, grades, attendance } = klass
   const [subjIndex, setSubjIndex] = useState(0)
   const subject = subjects[subjIndex]
@@ -1433,20 +1447,30 @@ function SubjectTab({ klass, onSetGrade }) {
           const isAbsent = attendance?.[student.matricule] === false
           const g = grades?.[student.matricule]?.[subject.key]
           return (
-            <div key={student.matricule} className={`p-3.5 rounded-2xl bg-white dark:bg-[#241B3F] ${isAbsent ? 'opacity-40' : ''}`}>
+            <div key={student.matricule} className={`p-3.5 rounded-2xl bg-white dark:bg-[#1E3329] ${isAbsent ? 'opacity-40' : ''}`}>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium flex-1 min-w-0 truncate">{student.nom} {student.prenoms}</span>
-                <input
-                  ref={(el) => (inputRefs.current[student.matricule] = el)}
-                  value={g?.rawCode ?? ''}
-                  onChange={(e) => handleChange(student.matricule, e.target.value, idx)}
-                  placeholder="1402"
-                  inputMode="decimal"
-                  disabled={isAbsent}
-                  className="w-24 text-center px-2 py-2 rounded-lg border border-[#4C1D95]/15 dark:border-[#06B6D4]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#06B6D4] font-mono disabled:bg-black/5"
-                />
+                {locked ? (
+                  <button
+                    onClick={onBlockedTap}
+                    disabled={isAbsent}
+                    className="w-24 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-dashed border-[#1B3A2F]/25 dark:border-[#8BC34A]/25 text-[#1B3A2F]/40 dark:text-[#8BC34A]/50 disabled:opacity-40"
+                  >
+                    <Lock size={14} />
+                  </button>
+                ) : (
+                  <input
+                    ref={(el) => (inputRefs.current[student.matricule] = el)}
+                    value={g?.rawCode ?? ''}
+                    onChange={(e) => handleChange(student.matricule, e.target.value, idx)}
+                    placeholder="1402"
+                    inputMode="decimal"
+                    disabled={isAbsent}
+                    className="w-24 text-center px-2 py-2 rounded-lg border border-[#1B3A2F]/15 dark:border-[#8BC34A]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#8BC34A] font-mono disabled:bg-black/5"
+                  />
+                )}
               </div>
-              {!isAbsent && <GradeBreakdown grade={g} />}
+              {!isAbsent && !locked && <GradeBreakdown grade={g} />}
             </div>
           )
         })}
@@ -1469,7 +1493,7 @@ function RecapTab({ klass, onExport }) {
 
   return (
     <div className="px-4 pt-4 pb-28 space-y-3">
-      <div className="p-4 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] flex items-center justify-between">
+      <div className="p-4 rounded-2xl bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] flex items-center justify-between">
         <div>
           <div className="text-xs opacity-80">Résumé de la classe</div>
           <div className="font-semibold">{admisCount} admis sur {notesCount}</div>
@@ -1480,8 +1504,8 @@ function RecapTab({ klass, onExport }) {
       </div>
 
       {ranking.map((r) => (
-        <div key={r.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#241B3F] flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#4C1D95]/5 dark:bg-white/5 flex items-center justify-center text-xs font-semibold shrink-0">
+        <div key={r.matricule} className="p-3.5 rounded-2xl bg-white dark:bg-[#1E3329] flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#1B3A2F]/5 dark:bg-white/5 flex items-center justify-center text-xs font-semibold shrink-0">
             {r.isAbsent ? '—' : r.rank}
           </div>
           <div className="min-w-0 flex-1">
@@ -1516,18 +1540,18 @@ function StatsTab({ klass, onClose }) {
       <TopBar title="Statistiques par matière" onBack={onClose} />
       <div className="px-4 pt-4 pb-10 space-y-2.5">
         {stats.map((s) => (
-          <div key={s.key} className="p-4 rounded-2xl bg-white dark:bg-[#241B3F]">
+          <div key={s.key} className="p-4 rounded-2xl bg-white dark:bg-[#1E3329]">
             <div className="font-medium text-sm mb-2">{s.label}</div>
             <div className="flex items-center justify-between text-xs opacity-60 mb-1">
               <span>Moyenne classe</span>
-              <span className="font-semibold text-[#4C1D95] dark:text-[#06B6D4] text-sm">{s.average !== null ? `${formatNum(s.average)}/20` : '—'}</span>
+              <span className="font-semibold text-[#1B3A2F] dark:text-[#8BC34A] text-sm">{s.average !== null ? `${formatNum(s.average)}/20` : '—'}</span>
             </div>
             <div className="flex items-center justify-between text-xs opacity-60">
               <span>Taux de réussite (≥ {SUBJECT_PASS}/20)</span>
               <span className="font-semibold text-sm">{s.successRate !== null ? `${Math.round(s.successRate)}%` : '—'}</span>
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
-              <div className="h-full bg-[#06B6D4]" style={{ width: `${s.successRate ?? 0}%` }} />
+              <div className="h-full bg-[#8BC34A]" style={{ width: `${s.successRate ?? 0}%` }} />
             </div>
           </div>
         ))}
@@ -1550,20 +1574,20 @@ class ErrorBoundary extends React.Component {
     return { hasError: true }
   }
   componentDidCatch(error, info) {
-    console.error('NoteExpress a rencontré une erreur :', error, info)
+    console.error('EducNotes a rencontré une erreur :', error, info)
   }
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-[#F7F5FB] dark:bg-[#140F26] text-[#241B3F] dark:text-[#EDE9FE]">
-          <AlertCircle size={36} className="mb-4 text-[#06B6D4]" />
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-[#F6F8F4] dark:bg-[#0E1F17] text-[#1E3329] dark:text-[#E7F0E5]">
+          <AlertCircle size={36} className="mb-4 text-[#8BC34A]" />
           <h2 className="font-bold text-lg mb-2">Un problème est survenu</h2>
           <p className="text-sm opacity-70 mb-6 max-w-xs">
             Vos données déjà saisies sont conservées sur l'appareil. Essayez de recharger l'application.
           </p>
           <button
             onClick={() => { this.setState({ hasError: false }); window.location.reload() }}
-            className="px-6 py-3 rounded-2xl bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] font-semibold text-sm"
+            className="px-6 py-3 rounded-2xl bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] font-semibold text-sm"
           >
             Recharger l'application
           </button>
@@ -1571,44 +1595,6 @@ class ErrorBoundary extends React.Component {
       )
     }
     return this.props.children
-  }
-}
-
-function generateDemoClass() {
-  const NOMS = ['ADJOVI', 'AGOSSOU', 'AHOUANSOU', 'AÏNA', 'ALLADATIN', 'AZONHOUME', 'BOKO', 'DOSSOU', 'HOUNKPATIN', 'SOSSOU']
-  const PRENOMS = ['Espoir', 'Grâce', 'Rodrigue', 'Bénédicte', 'Emmanuel', 'Rosine', 'Junior', 'Divine', 'Prince', 'Marlène']
-  const subjects = [
-    { key: 'dictee_0', label: 'Dictée' },
-    { key: 'math_1', label: 'Mathématiques' },
-    { key: 'lecture_2', label: 'Lecture' },
-    { key: 'sciences_3', label: 'Sciences' },
-  ]
-  const roster = NOMS.map((nom, i) => ({
-    matricule: `DEMO${String(i + 1).padStart(3, '0')}`,
-    rawMatricule: `DEMO${String(i + 1).padStart(3, '0')}`,
-    nom,
-    prenoms: PRENOMS[i],
-  }))
-  const grades = {}
-  roster.forEach((s) => {
-    grades[s.matricule] = {}
-    subjects.forEach((subj) => {
-      const obtenue = 8 + Math.floor(Math.random() * 10)
-      const perfectionnement = Math.floor(Math.random() * 3)
-      grades[s.matricule][subj.key] = { rawCode: `${obtenue}${String(perfectionnement).padStart(2, '0')}`, obtenue, perfectionnement }
-    })
-  })
-  return {
-    id: uid('cls'),
-    className: 'Classe démo — CM1',
-    evaluationType: EVALUATION_TYPES[0],
-    entryModeChosen: true,
-    roster,
-    subjects,
-    gradesByEval: { [EVALUATION_TYPES[0]]: grades },
-    attendanceByEval: { [EVALUATION_TYPES[0]]: {} },
-    isDemo: true,
-    updatedAt: Date.now(),
   }
 }
 
@@ -1630,7 +1616,7 @@ function evalGradeCount(klass, ev) {
 const TUTORIAL_STEPS = [
   {
     icon: Sparkles,
-    title: 'Bienvenue sur NoteExpress',
+    title: 'Bienvenue sur EducNotes',
     text: "Fini le stress des cellules Excel. Cette application vous fait gagner un temps précieux pour saisir les notes de votre classe.",
   },
   {
@@ -1662,14 +1648,14 @@ function TutorialOverlay({ onClose }) {
   const Icon = current.icon
 
   return (
-    <div className="fixed inset-0 z-40 bg-[#F7F5FB] dark:bg-[#140F26] flex flex-col">
+    <div className="fixed inset-0 z-40 bg-[#F6F8F4] dark:bg-[#0E1F17] flex flex-col">
       <div className="flex justify-end p-4">
         <button onClick={onClose} className="text-sm font-medium opacity-50 px-2 py-1">Passer</button>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-        <div className="w-20 h-20 rounded-3xl bg-[#4C1D95]/10 dark:bg-[#06B6D4]/10 flex items-center justify-center mb-6">
-          <Icon size={34} className="text-[#4C1D95] dark:text-[#06B6D4]" />
+        <div className="w-20 h-20 rounded-3xl bg-[#1B3A2F]/10 dark:bg-[#8BC34A]/10 flex items-center justify-center mb-6">
+          <Icon size={34} className="text-[#1B3A2F] dark:text-[#8BC34A]" />
         </div>
         <h2 className="font-bold text-xl mb-3">{current.title}</h2>
         <p className="text-sm leading-relaxed opacity-70 max-w-xs">{current.text}</p>
@@ -1677,7 +1663,7 @@ function TutorialOverlay({ onClose }) {
 
       <div className="flex items-center justify-center gap-2 mb-6">
         {TUTORIAL_STEPS.map((_, i) => (
-          <div key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-6 bg-[#4C1D95] dark:bg-[#06B6D4]' : 'w-1.5 bg-[#4C1D95]/20 dark:bg-white/20'}`} />
+          <div key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-6 bg-[#1B3A2F] dark:bg-[#8BC34A]' : 'w-1.5 bg-[#1B3A2F]/20 dark:bg-white/20'}`} />
         ))}
       </div>
 
@@ -1703,6 +1689,8 @@ function AppInner() {
   const [licenseStatus, setLicenseStatus] = useState('checking') // checking | locked | unlocked
   const [license, setLicense] = useState(null)
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [showLicenseGate, setShowLicenseGate] = useState(false)
+  const [blockedToast, setBlockedToast] = useState(false)
 
   const [classes, setClasses] = useState([])
   const [activeId, setActiveId] = useState(null)
@@ -1896,7 +1884,7 @@ function AppInner() {
   }
 
   function handleResetApplication() {
-    if (!window.confirm('Réinitialiser NoteExpress ? Toutes les classes et notes enregistrées sur cet appareil seront définitivement supprimées.')) return
+    if (!window.confirm('Réinitialiser EducNotes ? Toutes les classes et notes enregistrées sur cet appareil seront définitivement supprimées.')) return
     localStorage.removeItem(LS_CLASSES)
     localStorage.removeItem(LS_ACTIVE)
     localStorage.removeItem(LS_PIN)
@@ -1909,16 +1897,25 @@ function AppInner() {
     setDark(false)
   }
 
+  function handleBlockedGradeTap() {
+    setBlockedToast(true)
+    if (navigator.vibrate) navigator.vibrate(20)
+    clearTimeout(handleBlockedGradeTap._t)
+    handleBlockedGradeTap._t = setTimeout(() => setBlockedToast(false), 4500)
+  }
+
   /* ------------------------- Rendus conditionnels ------------------------- */
 
   if (licenseStatus === 'checking') return null
 
-  if (licenseStatus === 'locked') {
+  if (showLicenseGate) {
     return (
       <LicenseGate
+        onCancel={() => setShowLicenseGate(false)}
         onActivated={(result) => {
           setLicense(result)
           setLicenseStatus('unlocked')
+          setShowLicenseGate(false)
         }}
       />
     )
@@ -1933,12 +1930,8 @@ function AppInner() {
     return (
       <Screen>
         <WelcomeScreen
-          onStart={() => handleCreateClass('Ma classe')}
-          onDemo={() => {
-            const demo = generateDemoClass()
-            setClasses((prev) => [...prev, demo])
-            setActiveId(demo.id)
-          }}
+          onStart={() => (licenseStatus === 'unlocked' ? handleCreateClass('Ma classe') : setShowLicenseGate(true))}
+          onDemo={() => handleCreateClass('Ma classe')}
           onReset={classes.length ? handleResetApplication : undefined}
         />
       </Screen>
@@ -2020,10 +2013,21 @@ function AppInner() {
         <ElevesTab klass={activeClassView} onToggleAttendance={handleToggleAttendance} onRemoveStudent={handleRemoveStudent} />
       )}
       {activeTab === 'saisie' && (
-        <StudentEntryTab klass={activeClassView} onSetGrade={handleSetGrade} onToggleAttendance={handleToggleAttendance} />
+        <StudentEntryTab
+          klass={activeClassView}
+          onSetGrade={handleSetGrade}
+          onToggleAttendance={handleToggleAttendance}
+          locked={licenseStatus !== 'unlocked'}
+          onBlockedTap={handleBlockedGradeTap}
+        />
       )}
       {activeTab === 'matieres' && (
-        <SubjectTab klass={activeClassView} onSetGrade={handleSetGrade} />
+        <SubjectTab
+          klass={activeClassView}
+          onSetGrade={handleSetGrade}
+          locked={licenseStatus !== 'unlocked'}
+          onBlockedTap={handleBlockedGradeTap}
+        />
       )}
       {activeTab === 'classement' && (
         <RecapTab klass={activeClassView} onExport={() => buildExportWorkbook(activeClassView)} />
@@ -2051,6 +2055,22 @@ function AppInner() {
       )}
 
       {tutorialOpen && <TutorialOverlay onClose={handleCloseTutorial} />}
+
+      {blockedToast && (
+        <div className="fixed bottom-20 left-4 right-4 z-40 bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] rounded-2xl p-4 shadow-lg flex items-start gap-3">
+          <Lock size={18} className="shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium leading-snug">Appuyez sur le bouton Commencer à l'accueil pour saisir les notes de vos élèves.</p>
+            <button
+              onClick={() => { setBlockedToast(false); setShowLicenseGate(true) }}
+              className="mt-2 text-xs font-semibold underline underline-offset-2"
+            >
+              Activer ma licence maintenant
+            </button>
+          </div>
+          <button onClick={() => setBlockedToast(false)} className="shrink-0 opacity-70"><X size={16} /></button>
+        </div>
+      )}
 
       {morePanelOpen && (
         <MorePanel
