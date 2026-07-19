@@ -19,7 +19,10 @@ const EVALUATION_TYPES = [
   'Évaluation Sommative 3',
 ]
 
-const PASSING_AVERAGE = 9 // seuil admis / non admis sur la moyenne générale
+const PASSING_AVERAGE = 10 // seuil admis / non admis sur la moyenne générale
+// Phase actuelle : découverte libre, sans licence. Repasser à true quand la
+// commercialisation démarre — tout le système de licence reste prêt derrière ce réglage.
+const LICENSE_ENABLED = false
 const SUBJECT_PASS = 10 // seuil de réussite par matière
 
 const APP_NAME = 'NoteExpress'
@@ -428,8 +431,15 @@ function parseEducMasterWorkbook(arrayBuffer) {
   return { roster, subjects }
 }
 
+const EVAL_SHORT_CODES = {
+  'Évaluation Formative 1': 'EvFor1',
+  'Évaluation Sommative 1': 'EvSom1',
+  'Évaluation Sommative 2': 'EvSom2',
+  'Évaluation Sommative 3': 'EvSom3',
+}
+
 function buildExportWorkbook(klass) {
-  const { roster, subjects, grades, attendance, className } = klass
+  const { roster, subjects, grades, attendance, className, sourceFileName, evaluationType } = klass
   const headerRow0 = ['', '', '']
   const headerRow1 = ['Matricule', 'Nom', 'Prénoms']
   subjects.forEach((s) => {
@@ -476,7 +486,9 @@ function buildExportWorkbook(klass) {
   wsRecap['!cols'] = [{ wch: 8 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 12 }, { wch: 14 }]
   XLSX.utils.book_append_sheet(wb, wsRecap, 'Récapitulatif')
 
-  const fileName = `${(className || 'Classe').replace(/[^a-z0-9]+/gi, '_')}_NoteExpress.xlsx`
+  const evalCode = EVAL_SHORT_CODES[evaluationType] || 'Notes'
+  const classToken = (sourceFileName || className || 'Classe').replace(/[^a-zA-Z0-9_-]+/g, '_')
+  const fileName = `${evalCode}_${classToken}.xlsx`
   XLSX.writeFile(wb, fileName)
 }
 
@@ -1087,16 +1099,16 @@ function WelcomeScreen({ onStart, onReset, onDemo }) {
         </h1>
 
         <p className="text-[0.95rem] leading-relaxed max-w-xs mb-8 opacity-75">
-          Corriger 40 copies, c'est déjà assez long. Reporter les notes sur EducMaster ne devrait pas l'être. NoteExpress s'en charge en quelques minutes, directement depuis votre téléphone.
+          Le stress de la saisie de dernière minute, les erreurs qu'on découvre trop tard, les heures qu'on ne reverra jamais. NoteExpress vous rend ce temps.
         </p>
 
         <div className="w-full max-w-xs space-y-3">
           <PrimaryButton onClick={onStart}>
-            <span className="flex items-center justify-center gap-2">Ouvrir ma classe <ChevronRight size={18} /></span>
+            <span className="flex items-center justify-center gap-2">Commencer <ChevronRight size={18} /></span>
           </PrimaryButton>
           {onDemo && (
             <GhostButton onClick={onDemo}>
-              <span className="flex items-center justify-center gap-2"><Sparkles size={16} /> Faire le tour sans mes données</span>
+              <span className="flex items-center justify-center gap-2"><Sparkles size={16} /> Découvrir l'app en 2 minutes</span>
             </GhostButton>
           )}
           {onReset && (
@@ -1121,7 +1133,8 @@ function ImportScreen({ onImported, onBack, onReset }) {
     try {
       const buf = await file.arrayBuffer()
       const { roster, subjects } = parseEducMasterWorkbook(buf)
-      onImported({ roster, subjects })
+      const sourceFileName = file.name.replace(/\.(xlsx|xls)$/i, '')
+      onImported({ roster, subjects, sourceFileName })
     } catch (e) {
       setError(e.message || "Impossible de lire ce fichier. Vérifiez qu'il s'agit bien d'un export EducMaster.")
     } finally {
@@ -1137,9 +1150,21 @@ function ImportScreen({ onImported, onBack, onReset }) {
           <Upload size={26} className="text-[#06B6D4] rotate-2" />
         </div>
         <h2 className="font-bold text-xl mb-2">On récupère votre liste</h2>
-        <p className="text-sm leading-relaxed opacity-70 max-w-xs mb-7">
-          Le fichier que vous avez déjà exporté depuis EducMaster pour cette classe suffit — NoteExpress reconnaît directement les colonnes et les matières.
-        </p>
+
+        <div className="w-full max-w-xs mb-7 text-left bg-white dark:bg-[#241B3F] rounded-2xl p-4 space-y-2.5">
+          <div className="flex gap-2.5 text-sm">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] text-xs font-bold flex items-center justify-center">1</span>
+            <span>Ouvrez EducMaster et exportez le fichier Excel de votre classe, comme d'habitude.</span>
+          </div>
+          <div className="flex gap-2.5 text-sm">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] text-xs font-bold flex items-center justify-center">2</span>
+            <span>Appuyez sur le bouton ci-dessous et choisissez ce fichier.</span>
+          </div>
+          <div className="flex gap-2.5 text-sm">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-[#4C1D95] dark:bg-[#06B6D4] text-white dark:text-[#140F26] text-xs font-bold flex items-center justify-center">3</span>
+            <span>Vos élèves et matières apparaissent automatiquement.</span>
+          </div>
+        </div>
 
         <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => e.target.files[0] && handleFile(e.target.files[0])} />
         <button
@@ -1247,6 +1272,9 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
   if (!student) return <EmptyState icon={Users} title="Aucun élève" />
 
   const isAbsent = attendance?.[student.matricule] === false
+  const studentGrades = grades?.[student.matricule] || {}
+  const filledCount = subjects.filter((s) => studentGrades[s.key]?.obtenue !== null && studentGrades[s.key]?.obtenue !== undefined).length
+  const progressPct = subjects.length ? Math.round((filledCount / subjects.length) * 100) : 0
 
   function handleChange(subjKey, raw) {
     onSetGrade(student.matricule, subjKey, raw)
@@ -1271,6 +1299,18 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
         <button onClick={() => setIndex(Math.min(roster.length - 1, index + 1))} disabled={index === roster.length - 1} className="p-2 disabled:opacity-30"><ChevronRight size={20} /></button>
       </div>
 
+      {!isAbsent && subjects.length > 0 && (
+        <div className="px-4 pb-3">
+          <div className="flex items-center justify-between text-xs mb-1.5">
+            <span className="opacity-50 font-medium">{filledCount} / {subjects.length} matières saisies</span>
+            {filledCount === subjects.length && <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1"><Check size={13} /> Complet</span>}
+          </div>
+          <div className="h-1.5 rounded-full bg-[#4C1D95]/10 dark:bg-white/10 overflow-hidden">
+            <div className="h-full bg-[#06B6D4] transition-all" style={{ width: `${progressPct}%` }} />
+          </div>
+        </div>
+      )}
+
       <div className="px-4 pb-3">
         <button
           onClick={() => onToggleAttendance(student.matricule)}
@@ -1286,18 +1326,22 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
       ) : (
         <div className="px-4 space-y-2.5">
           {subjects.map((s) => {
-            const g = grades?.[student.matricule]?.[s.key]
+            const g = studentGrades[s.key]
+            const isFilled = g?.obtenue !== null && g?.obtenue !== undefined
             return (
-              <div key={s.key} className="p-3.5 rounded-2xl bg-white dark:bg-[#241B3F]">
+              <div key={s.key} className={`p-3.5 rounded-2xl bg-white dark:bg-[#241B3F] border transition-colors ${isFilled ? 'border-[#06B6D4]/30' : 'border-transparent'}`}>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-medium flex-1 min-w-0 truncate">{s.label}</span>
+                  <span className="text-sm font-medium flex-1 min-w-0 truncate flex items-center gap-1.5">
+                    {isFilled && <Check size={13} className="text-[#06B6D4] shrink-0" />}
+                    {s.label}
+                  </span>
                   <input
                     ref={(el) => (inputRefs.current[s.key] = el)}
                     value={g?.rawCode ?? ''}
                     onChange={(e) => handleChange(s.key, e.target.value)}
                     placeholder="1402"
                     inputMode="decimal"
-                    className="w-24 text-center px-2 py-2 rounded-lg border border-[#4C1D95]/15 dark:border-[#06B6D4]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#06B6D4] font-mono"
+                    className="w-24 text-center px-2 py-2.5 rounded-lg border border-[#4C1D95]/15 dark:border-[#06B6D4]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#06B6D4] font-mono text-[15px] font-semibold"
                   />
                 </div>
                 <GradeBreakdown grade={g} />
@@ -1678,12 +1722,16 @@ function AppInner() {
 
   // --- Initialisation ---
   useEffect(() => {
-    const stored = loadStoredLicense()
-    if (stored?.valid) {
-      setLicense(stored)
+    if (!LICENSE_ENABLED) {
       setLicenseStatus('unlocked')
     } else {
-      setLicenseStatus('locked')
+      const stored = loadStoredLicense()
+      if (stored?.valid) {
+        setLicense(stored)
+        setLicenseStatus('unlocked')
+      } else {
+        setLicenseStatus('locked')
+      }
     }
 
     setClasses(loadClasses())
@@ -1901,7 +1949,7 @@ function AppInner() {
   if (!activeClass.roster.length) {
     return (
       <ImportScreen
-        onImported={({ roster, subjects }) => updateClass(activeClass.id, (c) => ({ ...c, roster, subjects }))}
+        onImported={({ roster, subjects, sourceFileName }) => updateClass(activeClass.id, (c) => ({ ...c, roster, subjects, sourceFileName }))}
         onBack={classes.length > 1 ? () => handleDeleteClass(activeClass.id) : undefined}
         onReset={handleResetApplication}
       />
