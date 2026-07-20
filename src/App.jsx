@@ -1268,7 +1268,7 @@ function GradeBreakdown({ grade }) {
    SAISIE PAR ÉLÈVE
    ========================================================================== */
 
-function StudentEntryTab({ klass, onSetGrade, onToggleAttendance, locked, onBlockedTap }) {
+function StudentEntryTab({ klass, onSetGrade, onToggleAttendance }) {
   const { roster, subjects, grades, attendance } = klass
   const [index, setIndex] = useState(0)
   const student = roster[index]
@@ -1295,16 +1295,26 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance, locked, onBloc
 
   return (
     <div className="pb-28">
-      <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-        <button onClick={() => setIndex(Math.max(0, index - 1))} disabled={index === 0} className="p-2 disabled:opacity-30"><ChevronLeft size={20} /></button>
+      <div className="px-4 pt-4 pb-1 flex items-center justify-between gap-2">
+        <button onClick={() => setIndex(Math.max(0, index - 1))} disabled={index === 0} className="p-2 disabled:opacity-30 shrink-0"><ChevronLeft size={20} /></button>
         <div className="text-center min-w-0 flex-1">
           <div className="font-semibold truncate">{student.nom} {student.prenoms}</div>
           <div className="text-xs opacity-50">{index + 1} / {roster.length} · Matricule {student.matricule}</div>
         </div>
-        <button onClick={() => setIndex(Math.min(roster.length - 1, index + 1))} disabled={index === roster.length - 1} className="p-2 disabled:opacity-30"><ChevronRight size={20} /></button>
+        <button onClick={() => setIndex(Math.min(roster.length - 1, index + 1))} disabled={index === roster.length - 1} className="p-2 disabled:opacity-30 shrink-0"><ChevronRight size={20} /></button>
       </div>
 
-      {!isAbsent && subjects.length > 0 && !locked && (
+      <div className="px-4 pb-2 flex justify-center">
+        <button
+          onClick={() => onToggleAttendance(student.matricule)}
+          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full ${isAbsent ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}
+        >
+          {isAbsent ? <CircleX size={20} /> : <CircleCheck size={20} />}
+          {isAbsent && <span className="text-xs font-medium pr-0.5">Absent</span>}
+        </button>
+      </div>
+
+      {!isAbsent && subjects.length > 0 && (
         <div className="px-4 pb-3">
           <div className="flex items-center justify-between text-xs mb-1.5">
             <span className="opacity-50 font-medium">{filledCount} / {subjects.length} matières saisies</span>
@@ -1312,19 +1322,10 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance, locked, onBloc
           </div>
           <div className="h-1.5 rounded-full bg-[#1B3A2F]/10 dark:bg-white/10 overflow-hidden">
             <div className="h-full bg-[#8BC34A] transition-all" style={{ width: `${progressPct}%` }} />
+
           </div>
         </div>
       )}
-
-      <div className="px-4 pb-3">
-        <button
-          onClick={() => onToggleAttendance(student.matricule)}
-          className={`w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 ${isAbsent ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}
-        >
-          {isAbsent ? <CircleX size={16} /> : <CircleCheck size={16} />}
-          {isAbsent ? 'Élève absent' : 'Élève présent'}
-        </button>
-      </div>
 
       {isAbsent ? (
         <EmptyState icon={CircleX} title="Élève marqué absent" hint="Aucune note à saisir pour cette évaluation." />
@@ -1340,23 +1341,14 @@ function StudentEntryTab({ klass, onSetGrade, onToggleAttendance, locked, onBloc
                     {isFilled && <Check size={13} className="text-[#8BC34A] shrink-0" />}
                     {s.label}
                   </span>
-                  {locked ? (
-                    <button
-                      onClick={onBlockedTap}
-                      className="w-24 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg border border-dashed border-[#1B3A2F]/25 dark:border-[#8BC34A]/25 text-[#1B3A2F]/40 dark:text-[#8BC34A]/50"
-                    >
-                      <Lock size={14} />
-                    </button>
-                  ) : (
-                    <input
-                      ref={(el) => (inputRefs.current[s.key] = el)}
-                      value={g?.rawCode ?? ''}
-                      onChange={(e) => handleChange(s.key, e.target.value)}
-                      placeholder="1402"
-                      inputMode="decimal"
-                      className="w-24 text-center px-2 py-2.5 rounded-lg border border-[#1B3A2F]/15 dark:border-[#8BC34A]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#8BC34A] font-mono text-[15px] font-semibold"
-                    />
-                  )}
+                  <input
+                    ref={(el) => (inputRefs.current[s.key] = el)}
+                    value={g?.rawCode ?? ''}
+                    onChange={(e) => handleChange(s.key, e.target.value)}
+                    placeholder="1402"
+                    inputMode="decimal"
+                    className="w-24 text-center px-2 py-2.5 rounded-lg border border-[#1B3A2F]/15 dark:border-[#8BC34A]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#8BC34A] font-mono text-[15px] font-semibold"
+                  />
                 </div>
                 {!locked && <GradeBreakdown grade={g} />}
               </div>
@@ -1414,7 +1406,7 @@ function ElevesTab({ klass, onToggleAttendance, onRemoveStudent }) {
    SAISIE PAR MATIÈRE
    ========================================================================== */
 
-function SubjectTab({ klass, onSetGrade, locked, onBlockedTap }) {
+function SubjectTab({ klass, onSetGrade }) {
   const { roster, subjects, grades, attendance } = klass
   const [subjIndex, setSubjIndex] = useState(0)
   const subject = subjects[subjIndex]
@@ -1433,14 +1425,19 @@ function SubjectTab({ klass, onSetGrade, locked, onBlockedTap }) {
 
   return (
     <div className="pb-28">
-      <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-        <button onClick={() => setSubjIndex(Math.max(0, subjIndex - 1))} disabled={subjIndex === 0} className="p-2 disabled:opacity-30"><ChevronLeft size={20} /></button>
-        <div className="text-center min-w-0 flex-1">
-          <div className="font-semibold truncate">{subject.label}</div>
-          <div className="text-xs opacity-50">{subjIndex + 1} / {subjects.length}</div>
-        </div>
-        <button onClick={() => setSubjIndex(Math.min(subjects.length - 1, subjIndex + 1))} disabled={subjIndex === subjects.length - 1} className="p-2 disabled:opacity-30"><ChevronRight size={20} /></button>
+      <div className="flex gap-2 overflow-x-auto px-4 pt-4 pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {subjects.map((s, i) => (
+          <button
+            key={s.key}
+            onClick={() => setSubjIndex(i)}
+            className={`shrink-0 px-3.5 py-2 rounded-xl text-sm font-medium whitespace-nowrap ${i === subjIndex ? 'bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17]' : 'bg-white dark:bg-[#1E3329] opacity-60'}`}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
+
+      <div className="px-4 pb-2 text-xs opacity-50">{subjIndex + 1} / {subjects.length} matières</div>
 
       <div className="px-4 space-y-2.5">
         {roster.map((student, idx) => {
@@ -1450,27 +1447,17 @@ function SubjectTab({ klass, onSetGrade, locked, onBlockedTap }) {
             <div key={student.matricule} className={`p-3.5 rounded-2xl bg-white dark:bg-[#1E3329] ${isAbsent ? 'opacity-40' : ''}`}>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium flex-1 min-w-0 truncate">{student.nom} {student.prenoms}</span>
-                {locked ? (
-                  <button
-                    onClick={onBlockedTap}
-                    disabled={isAbsent}
-                    className="w-24 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-dashed border-[#1B3A2F]/25 dark:border-[#8BC34A]/25 text-[#1B3A2F]/40 dark:text-[#8BC34A]/50 disabled:opacity-40"
-                  >
-                    <Lock size={14} />
-                  </button>
-                ) : (
-                  <input
-                    ref={(el) => (inputRefs.current[student.matricule] = el)}
-                    value={g?.rawCode ?? ''}
-                    onChange={(e) => handleChange(student.matricule, e.target.value, idx)}
-                    placeholder="1402"
-                    inputMode="decimal"
-                    disabled={isAbsent}
-                    className="w-24 text-center px-2 py-2 rounded-lg border border-[#1B3A2F]/15 dark:border-[#8BC34A]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#8BC34A] font-mono disabled:bg-black/5"
-                  />
-                )}
+                <input
+                  ref={(el) => (inputRefs.current[student.matricule] = el)}
+                  value={g?.rawCode ?? ''}
+                  onChange={(e) => handleChange(student.matricule, e.target.value, idx)}
+                  placeholder="1402"
+                  inputMode="decimal"
+                  disabled={isAbsent}
+                  className="w-24 text-center px-2 py-2 rounded-lg border border-[#1B3A2F]/15 dark:border-[#8BC34A]/25 bg-transparent outline-none focus:ring-2 focus:ring-[#8BC34A] font-mono disabled:bg-black/5"
+                />
               </div>
-              {!isAbsent && !locked && <GradeBreakdown grade={g} />}
+              {!isAbsent && <GradeBreakdown grade={g} />}
             </div>
           )
         })}
@@ -1691,6 +1678,7 @@ function AppInner() {
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [showLicenseGate, setShowLicenseGate] = useState(false)
   const [blockedToast, setBlockedToast] = useState(false)
+  const [exportSuccessToast, setExportSuccessToast] = useState(false)
 
   const [classes, setClasses] = useState([])
   const [activeId, setActiveId] = useState(null)
@@ -1904,6 +1892,22 @@ function AppInner() {
     handleBlockedGradeTap._t = setTimeout(() => setBlockedToast(false), 4500)
   }
 
+  function handleExportClick() {
+    if (!activeClass) return
+    const canExport = licenseStatus === 'unlocked' || !activeClass.exportUsed
+    if (!canExport) {
+      handleBlockedGradeTap()
+      return
+    }
+    buildExportWorkbook(activeClassView)
+    if (licenseStatus !== 'unlocked' && !activeClass.exportUsed) {
+      updateClass(activeClass.id, (c) => ({ ...c, exportUsed: true }))
+      setExportSuccessToast(true)
+      clearTimeout(handleExportClick._t)
+      handleExportClick._t = setTimeout(() => setExportSuccessToast(false), 6000)
+    }
+  }
+
   /* ------------------------- Rendus conditionnels ------------------------- */
 
   if (licenseStatus === 'checking') return null
@@ -1951,21 +1955,15 @@ function AppInner() {
   if (!activeClass.evaluationType) {
     return (
       <EvaluationPicker
-        onPick={(ev) => updateClass(activeClass.id, (c) => ({
-          ...c,
-          evaluationType: ev,
-          gradesByEval: { ...c.gradesByEval, [ev]: c.gradesByEval?.[ev] || {} },
-          attendanceByEval: { ...c.attendanceByEval, [ev]: c.attendanceByEval?.[ev] || {} },
-        }))}
-      />
-    )
-  }
-  if (!activeClass.entryModeChosen) {
-    return (
-      <EntryModePicker
-        onPick={(mode) => {
-          setActiveTab(mode === 'eleve' ? 'saisie' : 'matieres')
-          updateClass(activeClass.id, (c) => ({ ...c, entryModeChosen: true }))
+        onPick={(ev) => {
+          setActiveTab(defaultMode === 'eleve' ? 'saisie' : 'matieres')
+          updateClass(activeClass.id, (c) => ({
+            ...c,
+            evaluationType: ev,
+            gradesByEval: { ...c.gradesByEval, [ev]: c.gradesByEval?.[ev] || {} },
+            attendanceByEval: { ...c.attendanceByEval, [ev]: c.attendanceByEval?.[ev] || {} },
+            entryModeChosen: true,
+          }))
         }}
       />
     )
@@ -1988,7 +1986,7 @@ function AppInner() {
               <HelpCircle size={18} />
             </button>
             <button
-              onClick={() => buildExportWorkbook(activeClassView)}
+              onClick={handleExportClick}
               title="Exporter"
               className="p-2 rounded-lg active:bg-white/10"
             >
@@ -2009,6 +2007,18 @@ function AppInner() {
       />
       <LicenseExpiryBanner license={license} onDismiss={() => setBannerDismissed(true)} />
 
+      <div className="flex gap-2 overflow-x-auto px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {EVALUATION_TYPES.map((ev) => (
+          <button
+            key={ev}
+            onClick={() => handleSwitchEvaluation(ev)}
+            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${ev === activeClass.evaluationType ? 'bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17]' : 'bg-white dark:bg-[#1E3329] opacity-60'}`}
+          >
+            {ev.replace('Évaluation ', '')}
+          </button>
+        ))}
+      </div>
+
       {activeTab === 'eleves' && (
         <ElevesTab klass={activeClassView} onToggleAttendance={handleToggleAttendance} onRemoveStudent={handleRemoveStudent} />
       )}
@@ -2017,20 +2027,16 @@ function AppInner() {
           klass={activeClassView}
           onSetGrade={handleSetGrade}
           onToggleAttendance={handleToggleAttendance}
-          locked={licenseStatus !== 'unlocked'}
-          onBlockedTap={handleBlockedGradeTap}
         />
       )}
       {activeTab === 'matieres' && (
         <SubjectTab
           klass={activeClassView}
           onSetGrade={handleSetGrade}
-          locked={licenseStatus !== 'unlocked'}
-          onBlockedTap={handleBlockedGradeTap}
         />
       )}
       {activeTab === 'classement' && (
-        <RecapTab klass={activeClassView} onExport={() => buildExportWorkbook(activeClassView)} />
+        <RecapTab klass={activeClassView} onExport={handleExportClick} />
       )}
 
       <BottomNav active={activeTab} onChange={setActiveTab} onMore={() => setMorePanelOpen(true)} />
@@ -2060,7 +2066,7 @@ function AppInner() {
         <div className="fixed bottom-20 left-4 right-4 z-40 bg-[#1B3A2F] dark:bg-[#8BC34A] text-white dark:text-[#0E1F17] rounded-2xl p-4 shadow-lg flex items-start gap-3">
           <Lock size={18} className="shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium leading-snug">Appuyez sur le bouton Commencer à l'accueil pour saisir les notes de vos élèves.</p>
+            <p className="text-sm font-medium leading-snug">Vous avez déjà utilisé votre export gratuit. Appuyez sur le bouton Commencer à l'accueil pour continuer à exporter vos notes.</p>
             <button
               onClick={() => { setBlockedToast(false); setShowLicenseGate(true) }}
               className="mt-2 text-xs font-semibold underline underline-offset-2"
@@ -2069,6 +2075,16 @@ function AppInner() {
             </button>
           </div>
           <button onClick={() => setBlockedToast(false)} className="shrink-0 opacity-70"><X size={16} /></button>
+        </div>
+      )}
+
+      {exportSuccessToast && (
+        <div className="fixed bottom-20 left-4 right-4 z-40 bg-white dark:bg-[#1E3329] border border-[#8BC34A]/40 rounded-2xl p-4 shadow-lg flex items-start gap-3">
+          <Check size={18} className="shrink-0 mt-0.5 text-[#8BC34A]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium leading-snug">Export réussi ! C'était votre essai gratuit. Pour vos prochaines évaluations, appuyez sur Commencer à l'accueil.</p>
+          </div>
+          <button onClick={() => setExportSuccessToast(false)} className="shrink-0 opacity-50"><X size={16} /></button>
         </div>
       )}
 
